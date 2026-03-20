@@ -1,21 +1,9 @@
-require('dotenv').config();
-const express = require('express');
-const app = express();
-const PORT = process.env.PORT || 4011;
+import dns from "dns";
+dns.setServers(["8.8.8.8", "1.1.1.1"]);
+dns.setDefaultResultOrder("ipv4first");
 
-app.get('/',(req,res)=>{
-    res.send("hello World!");
-})
+import dotenv from "dotenv";
+dotenv.config();
 
-app.get('/admin',(req,res)=>{
-    res.send("this is admin panel");
-})
-
-app.get("/user",(req,res)=>{
-    res.send("this is user panel");
-})
-
-
-app.listen(PORT, ()=>{
-    console.log(`this app run from this ${PORT}`);
-})
+import connectDB from "./db/index.js";
+connectDB();
