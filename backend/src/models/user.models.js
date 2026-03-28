@@ -4,15 +4,17 @@ import bcrypt from "bcrypt";
 import { type } from "node:os";
 
 const userSchema = new Mongoose.Schema({
-    name:{
-        type: String
+    fullName:{
+        type: String,
+        required:true
     },
     email : {
         type : String,
         unique : true,
         lowercase: true,
         trim: true,
-        index: true
+        index: true,
+        required:true
     },
     profileImage:{
         type : String,
@@ -33,7 +35,7 @@ const userSchema = new Mongoose.Schema({
 userSchema.pre("save", async function(next){
     if(!this.isModified("password")) return next();
 
-    this.password = bcrypt.hash(this.password, 10)
+    this.password = await bcrypt.hash(this.password, 10)
     next()
 })
 
