@@ -1,9 +1,9 @@
-import mongoose, { Mongoose } from "mongoose";
+import mongoose from "mongoose";
 import jwt from "jsonwebtoken";
 import bcrypt from "bcrypt";
 import { type } from "node:os";
 
-const userSchema = new Mongoose.Schema({
+const userSchema = new mongoose.Schema({
     fullName:{
         type: String,
         required:true
@@ -29,14 +29,14 @@ const userSchema = new Mongoose.Schema({
         default: "admin"
     }
 
-},{timeStamp: true});
+},{timestamps: true});
 
 // incrypting password
 userSchema.pre("save", async function(next){
     if(!this.isModified("password")) return next();
 
     this.password = await bcrypt.hash(this.password, 10)
-    next()
+    // next()
 })
 
 // checking password
