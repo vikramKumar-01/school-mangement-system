@@ -7,6 +7,7 @@ import { ApiResponse } from "../utils/ApiResponse.js";
 const registerUser = asyncHandler(async (req, res) => {
     const { fullName, email, password, role } = req.body
 
+    // check required
     if (
         [fullName, email, password, role].some((field) =>
             field?.trim() == ""
@@ -30,7 +31,7 @@ const registerUser = asyncHandler(async (req, res) => {
     }
     const user = await User.create({
         fullName,
-        profileImage: profileImage?.url || "",
+        profileImage: profileImage,
         email,
         password,
         role
