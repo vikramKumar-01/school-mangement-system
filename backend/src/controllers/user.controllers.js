@@ -128,9 +128,7 @@ const logoutUser = asyncHandler(async(req, res)=>{
                 refreshToken: 1
             }
         },
-        {
-            new: true
-        }
+        { returnDocument: 'after' }
     )
 
     const options = {
