@@ -1,7 +1,7 @@
 import mongoose from "mongoose";
 import jwt from "jsonwebtoken";
 import bcrypt from "bcrypt";
-import { type } from "node:os";
+
 
 const userSchema = new mongoose.Schema({
     fullName:{
@@ -47,7 +47,36 @@ userSchema.methods.isPasswordCorrect = async function(password){
 }
 
 // generate token
-userSchema.methods.generateAccessToken = async function(){
+// userSchema.methods.generateAccessToken = async function(){
+//     return jwt.sign(
+//         {
+//             _id: this._id,
+//             email: this.email,
+//             fullName: this.fullName
+//         },
+//         process.env.ACCESS_TOKEN_SECRET,
+//         {
+//             expiresIn: process.env.ACCESS_TOKEN_EXPIRY
+//         }
+//     )
+// }
+
+// // Refresh token
+// userSchema.methods.generateRefreshToken = async function(){
+//     return jwt.sign(
+//         {
+//             _id: this._id,
+           
+//         },
+//         process.env.REFRESH_TOKEN_SECRET,
+//         {
+//             expiresIn: process.env.REFRESH_TOKEN_EXPIRY
+//         }
+//     )
+// }
+
+// ✅ Fixed model methods
+userSchema.methods.generateAccessToken = function(){
     return jwt.sign(
         {
             _id: this._id,
@@ -61,12 +90,10 @@ userSchema.methods.generateAccessToken = async function(){
     )
 }
 
-// Refresh token
-userSchema.methods.generateRefreshToken = async function(){
+userSchema.methods.generateRefreshToken = function(){
     return jwt.sign(
         {
             _id: this._id,
-           
         },
         process.env.REFRESH_TOKEN_SECRET,
         {

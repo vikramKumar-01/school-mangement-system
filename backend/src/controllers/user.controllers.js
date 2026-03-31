@@ -8,8 +8,8 @@ import { ApiResponse } from "../utils/ApiResponse.js";
 const generateAccessAndRefereshToken= async(userId)=>{
     try {
         const user = await User.findById(userId);
-        const accessToken = user.generateAccessToken();
-        const refreshToken = user.generateRefreshToken();
+        const accessToken = await user.generateAccessToken();
+        const refreshToken = await user.generateRefreshToken();
 
         // refresh token save in database 
         user.refreshToken = refreshToken;
@@ -17,7 +17,7 @@ const generateAccessAndRefereshToken= async(userId)=>{
 
         return{accessToken, refreshToken}
     } catch (error) {
-        console.log("🔥 TOKEN ERROR:", error);
+        console.log(" TOKEN ERROR:", error);
         throw new ApiError(500, "something went wrong while generating referesh and access token",);
     }
 }
@@ -70,9 +70,6 @@ const registerUser = asyncHandler(async (req, res) => {
 
 const loginUser = asyncHandler(async (req, res)=>{
     
-    console.log("HEADERS:", req.headers);
-    console.log("BODY:", req.body);
-
     const {email, password} = req.body ||{}  ;
     if(!email){
         throw new ApiError(400, "Email is required")
@@ -127,8 +124,8 @@ const logoutUser = asyncHandler(async(req, res)=>{
     await User.findByIdAndUpdate(
         req.user._id,
         {
-            $set: {
-                refreshToken: undefined
+            $unset: {
+                refreshToken: 1
             }
         },
         {
