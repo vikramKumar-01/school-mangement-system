@@ -3,6 +3,7 @@ import { ApiError } from "../utils/ApiError.js";
 import { User } from "../models/user.models.js";
 import { uploadOnCloudinary } from "../utils/cloudinary.js";
 import { ApiResponse } from "../utils/ApiResponse.js";
+import {jwt} from "jsonwebtoken";
 
 
 const generateAccessAndRefereshToken= async(userId)=>{
@@ -142,4 +143,89 @@ const logoutUser = asyncHandler(async(req, res)=>{
     .json(new ApiResponse(200, {}, "User Logged Out"))
 })
 
-export { registerUser ,loginUser,logoutUser}
+const refereshAccessToken = asyncHandler(async(req, res)=>{
+    const incomingRefreshToken = req.cookies.refreshToken || req.body.refreshToken;
+
+    if(incomingRefreshToken){
+        throw new ApiError(401, "Unauthorized request");
+    }
+
+    try {
+        const decodedToken = jwt.verify(
+            incomingRefreshToken,
+            process.env.REFRESH_TOKEN_SECRET
+        )
+    
+        const user = User.findById(decodedToken?._id);
+    
+        if(!user){
+            throw new ApiError(401, "Invalid refresh token")
+        }
+    
+        if(incomingRefreshToken !== user?.refreshToken){
+            throw new ApiError(401, "Refresh token is expired or used");
+        }
+    
+        const option = {
+            httpOnly: true,
+            secure: true
+        }
+        const {accessToken, newRefreshToken} = await generateAccessAndRefereshToken(user._id);
+    
+        return res
+        .status(200)
+        .cookie("accessToken", accessToken, option)
+        .cookie("refreshToken", newRefreshToken, option)
+        .json(
+            new ApiResponse(
+                200,
+                {accessToken, refreshToken: newRefreshToken },
+                "Access token refreshed"
+            )
+        )
+    } catch (error) {
+        throw new ApiError(401, error?.message || "Invalid refresh token");
+    }
+
+})
+
+
+// Get all users (Admin only)
+const getAllUsers = asyncHandler(async (req, res) => {
+    const { role, status, page = 1, limit = 10 } = req.query;
+
+    // Build filter dynamically
+    const filter = {};
+    if (role)   filter.role = role;
+    if (status) filter.status = status;
+
+    const skip = (page - 1) * limit;
+
+    const users = await User.find(filter)
+        .select("-password -refreshToken")
+        .skip(skip)
+        .limit(Number(limit))
+        .sort({ createdAt: -1 });
+
+    const totalUsers = await User.countDocuments(filter);
+
+    return res.status(200).json(
+        new ApiResponse(200, {
+            users,
+            pagination: {
+                totalUsers,
+                totalPages: Math.ceil(totalUsers / limit),
+                currentPage: Number(page),
+                limit: Number(limit)
+            }
+        }, "All users fetched successfully")
+    );
+});
+ 
+export { 
+    registerUser ,
+    loginUser,
+    logoutUser, 
+    refereshAccessToken,
+    getAllUsers
+}
