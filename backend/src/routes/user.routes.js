@@ -21,7 +21,7 @@ router.route("/refresh-token").post(refereshAccessToken)
 router.put("/change-password", verifyJWT, changePassword)
 router.route("/all-users").get(verifyJWT, AuthorizeRole("admin"), getAllUsers)
 router.route("/user-profile").get(verifyJWT, getCurrentUser)
-router.route("/update/:id").put(verifyJWT, updateUser)
+router.route("/update/:id").put(verifyJWT, upload.single("profileImage"), updateUser)
 router.route("/delete/:id").delete(verifyJWT, deleteUser)
 
 export default router;

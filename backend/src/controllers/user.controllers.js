@@ -1,7 +1,7 @@
 import { asyncHandler } from "../utils/asyncHandler.js";
 import { ApiError } from "../utils/ApiError.js";
 import { User } from "../models/user.models.js";
-import { uploadOnCloudinary } from "../utils/cloudinary.js";
+import { cloudinary, uploadOnCloudinary } from "../utils/cloudinary.js";
 import { ApiResponse } from "../utils/ApiResponse.js";
 import jwt from "jsonwebtoken";
 import bcrypt from "bcrypt";
@@ -225,7 +225,9 @@ const changePassword = asyncHandler(async (req, res) => {
 const getCurrentUser = asyncHandler(async (req, res) => {
     return res
     .status(200)
-    .json(200, req.user, "current user fetched successfully")
+    .json(
+        new ApiResponse(200, req.user, "current user fetched successfully")
+    )
 })
 
 
@@ -263,10 +265,10 @@ const getAllUsers = asyncHandler(async (req, res) => {
 
 const updateUser = asyncHandler(async (req, res) => {
     const { id } = req.params;
-    const { fullName, email, role } = req.body;
+    const { fullName, email, role } = req.body || {};
+    const newProfileImagePath = req.file?.path;
 
     const existingUser = await User.findById(id);
-
     if (!existingUser) {
         throw new ApiError(404, "User not found");
     }
@@ -278,7 +280,22 @@ const updateUser = asyncHandler(async (req, res) => {
         throw new ApiError(403, "You are not allowed to update this user");
     }
 
+    // empty update check
+    if (
+        fullName === undefined &&
+        email === undefined &&
+        role === undefined &&
+        !newProfileImagePath
+    ) {
+        throw new ApiError(400, "At least one field is required to update");
+    }
+
+    // email update
     if (email !== undefined) {
+        if (typeof email !== "string") {
+            throw new ApiError(400, "Email must be a string");
+        }
+
         const normalizedEmail = email.trim().toLowerCase();
 
         if (!normalizedEmail) {
@@ -297,7 +314,12 @@ const updateUser = asyncHandler(async (req, res) => {
         existingUser.email = normalizedEmail;
     }
 
+    // name update
     if (fullName !== undefined) {
+        if (typeof fullName !== "string") {
+            throw new ApiError(400, "Full name must be a string");
+        }
+
         const trimmedFullName = fullName.trim();
 
         if (!trimmedFullName) {
@@ -307,7 +329,18 @@ const updateUser = asyncHandler(async (req, res) => {
         existingUser.fullName = trimmedFullName;
     }
 
+    // role update
     if (role !== undefined) {
+        const allowedRoles = ["admin", "teacher", "student", "parent"];
+
+        if (typeof role !== "string") {
+            throw new ApiError(400, "Role must be a string");
+        }
+
+        if (!allowedRoles.includes(role)) {
+            throw new ApiError(400, "Invalid role");
+        }
+
         if (!isAdmin) {
             throw new ApiError(403, "Only admin can update user role");
         }
@@ -315,12 +348,28 @@ const updateUser = asyncHandler(async (req, res) => {
         existingUser.role = role;
     }
 
+    if (newProfileImagePath) {
+        const uploadedProfileImage = await uploadOnCloudinary(newProfileImagePath);
+
+        if (!uploadedProfileImage?.url || !uploadedProfileImage?.public_id) {
+            throw new ApiError(500, "Failed to upload profile image");
+        }
+
+        if (existingUser.profileImageId) {
+            await cloudinary.uploader.destroy(existingUser.profileImageId);
+        }
+
+        existingUser.profileImage = uploadedProfileImage.url;
+        existingUser.profileImageId = uploadedProfileImage.public_id;
+    }
+
     await existingUser.save();
 
-    const sanitizedUser = await User.findById(existingUser._id).select("-password -refreshToken");
+    existingUser.password = undefined;
+    existingUser.refreshToken = undefined;
 
     return res.status(200).json(
-        new ApiResponse(200, sanitizedUser, "User updated successfully")
+        new ApiResponse(200, existingUser, "User updated successfully")
     );
 });
 
