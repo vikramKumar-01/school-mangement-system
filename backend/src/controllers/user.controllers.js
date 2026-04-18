@@ -156,7 +156,7 @@ const refereshAccessToken = asyncHandler(async(req, res)=>{
             process.env.REFRESH_TOKEN_SECRET
         )
     
-        const user = User.findById(decodedToken?._id);
+        const user = await User.findById(decodedToken?._id);
     
         if(!user){
             throw new ApiError(401, "Invalid refresh token")
@@ -166,11 +166,15 @@ const refereshAccessToken = asyncHandler(async(req, res)=>{
             throw new ApiError(401, "Refresh token is expired or used");
         }
     
+        const {accessToken, refreshToken:newRefreshToken} = await generateAccessAndRefereshToken(user._id);
+
+        user.refreshToken= newRefreshToken;
+        await user.save({validateBeforeSave:false})
+
         const option = {
             httpOnly: true,
             secure: true
         }
-        const {accessToken, newRefreshToken} = await generateAccessAndRefereshToken(user._id);
     
         return res
         .status(200)
@@ -179,7 +183,7 @@ const refereshAccessToken = asyncHandler(async(req, res)=>{
         .json(
             new ApiResponse(
                 200,
-                {accessToken, refreshToken: newRefreshToken },
+                {accessToken },
                 "Access token refreshed"
             )
         )
