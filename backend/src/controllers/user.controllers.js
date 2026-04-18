@@ -4,6 +4,7 @@ import { User } from "../models/user.models.js";
 import { uploadOnCloudinary } from "../utils/cloudinary.js";
 import { ApiResponse } from "../utils/ApiResponse.js";
 import jwt from "jsonwebtoken";
+import bcrypt from "bcrypt";
 
 
 const generateAccessAndRefereshToken= async(userId)=>{
@@ -189,6 +190,44 @@ const refereshAccessToken = asyncHandler(async(req, res)=>{
 
 })
 
+const changePassword = asyncHandler(async (req, res) => {
+    const { oldPassword, newPassword } = req.body || {};
+
+    if (!oldPassword?.trim() || !newPassword?.trim()) {
+        throw new ApiError(400, "Old password and new password are required");
+    }
+
+    if (oldPassword === newPassword) {
+        throw new ApiError(400, "New password must be different from old password");
+    }
+
+    const user = await User.findById(req.user?._id);
+
+    if (!user) {
+        throw new ApiError(404, "User not found");
+    }
+
+    const isOldPasswordValid = await bcrypt.compare(oldPassword, user.password);
+
+    if (!isOldPasswordValid) {
+        throw new ApiError(400, "Old password is incorrect");
+    }
+
+    user.password = newPassword;
+    await user.save({ validateBeforeSave: false });
+
+    return res.status(200).json(
+        new ApiResponse(200, {}, "Password changed successfully")
+    );
+});
+
+// get user profile
+const getCurrentUser = asyncHandler(async (req, res) => {
+    return res
+    .status(200)
+    .json(200, req.user, "current user fetched successfully")
+})
+
 
 // Get all users (Admin only)
 const getAllUsers = asyncHandler(async (req, res) => {
@@ -221,11 +260,97 @@ const getAllUsers = asyncHandler(async (req, res) => {
         }, "All users fetched successfully")
     );
 });
+
+const updateUser = asyncHandler(async (req, res) => {
+    const { id } = req.params;
+    const { fullName, email, role } = req.body;
+
+    const existingUser = await User.findById(id);
+
+    if (!existingUser) {
+        throw new ApiError(404, "User not found");
+    }
+
+    const isAdmin = req.user?.role === "admin";
+    const isOwner = req.user?._id?.toString() === existingUser._id.toString();
+
+    if (!isAdmin && !isOwner) {
+        throw new ApiError(403, "You are not allowed to update this user");
+    }
+
+    if (email !== undefined) {
+        const normalizedEmail = email.trim().toLowerCase();
+
+        if (!normalizedEmail) {
+            throw new ApiError(400, "Email cannot be empty");
+        }
+
+        const emailOwner = await User.findOne({
+            email: normalizedEmail,
+            _id: { $ne: existingUser._id }
+        });
+
+        if (emailOwner) {
+            throw new ApiError(409, "Email is already in use");
+        }
+
+        existingUser.email = normalizedEmail;
+    }
+
+    if (fullName !== undefined) {
+        const trimmedFullName = fullName.trim();
+
+        if (!trimmedFullName) {
+            throw new ApiError(400, "Full name cannot be empty");
+        }
+
+        existingUser.fullName = trimmedFullName;
+    }
+
+    if (role !== undefined) {
+        if (!isAdmin) {
+            throw new ApiError(403, "Only admin can update user role");
+        }
+
+        existingUser.role = role;
+    }
+
+    await existingUser.save();
+
+    const sanitizedUser = await User.findById(existingUser._id).select("-password -refreshToken");
+
+    return res.status(200).json(
+        new ApiResponse(200, sanitizedUser, "User updated successfully")
+    );
+});
+
+const deleteUser = asyncHandler(async (req, res) => {
+    if (req.user?.role !== "admin") {
+        throw new ApiError(403, "Only admin can delete users");
+    }
+
+    const { id } = req.params;
+    const existingUser = await User.findById(id);
+
+    if (!existingUser) {
+        throw new ApiError(404, "User not found");
+    }
+
+    await User.findByIdAndDelete(id);
+
+    return res.status(200).json(
+        new ApiResponse(200, {}, "User deleted successfully")
+    );
+});
  
 export { 
     registerUser ,
     loginUser,
     logoutUser, 
     refereshAccessToken,
-    getAllUsers
+    changePassword,
+    getAllUsers,
+    updateUser,
+    deleteUser,
+    getCurrentUser
 }
