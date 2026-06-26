@@ -17,10 +17,18 @@ app.use(cookieParser());
 // routes import 
 import userRouter from './routes/user.routes.js'
 import studentRouter from './routes/student.routes.js'
+import teacherRouter from './routes/teacher.routes.js'
+import classRouter from './routes/class.routes.js'
+import feeRouter from './routes/fee.routes.js'
+import attendanceRouter from './routes/attendance.routes.js'
 
 // routes declaration
 app.use("/api/v1/users", userRouter);
 app.use("/api/v1/students", studentRouter);
+app.use("/api/v1/teachers", teacherRouter);
+app.use("/api/v1/classes", classRouter);
+app.use("/api/v1/fees", feeRouter);
+app.use("/api/v1/attendance", attendanceRouter);
 
 app.use((err, req, res, next) => {
     const statusCode = err instanceof ApiError ? err.statusCode : 500;
