@@ -10,7 +10,7 @@ const feeSchema = new mongoose.Schema({
     status:{
         type : String,
         enum: ["Paid", "Pending"],
-        default: pending
+        default: "Pending"
     },
     paymentDate:{
         type : Date 

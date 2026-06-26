@@ -21,10 +21,10 @@ const studentSchema = new mongoose.Schema({
     phone:{
         type: String
     },
-    adress:{
+    address:{
         type: String
     },
-    addmissionDate:{
+    admissionDate:{
         type:Date,
         default:Date.now
     }
