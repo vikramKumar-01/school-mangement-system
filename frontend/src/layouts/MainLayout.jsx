@@ -2,6 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { Outlet, Link, useNavigate, useLocation } from 'react-router-dom';
 import useAuth from '../hooks/useAuth';
 import { useTheme } from '../context/ThemeContext';
+import NotificationBell from '../components/NotificationBell';
 import { 
   LayoutDashboard, 
   Users, 
@@ -213,11 +214,8 @@ const MainLayout = () => {
               {theme === 'dark' ? <Sun className="h-5 w-5" /> : <Moon className="h-5 w-5" />}
             </button>
 
-            {/* Notification Icon */}
-            <button className="relative rounded-xl p-2 text-slate-500 dark:text-slate-400 hover:bg-slate-100 dark:hover:bg-slate-800 transition-all cursor-pointer">
-              <span className="absolute right-2 top-2 h-2 w-2 rounded-full bg-blue-500"></span>
-              <Bell className="h-5 w-5" />
-            </button>
+            {/* Notification Bell (role-aware, live data) */}
+            <NotificationBell userRole={user.role} />
 
             {/* Profile Menu Dropdown Button */}
             <div className="flex items-center gap-3 border-l border-slate-200 dark:border-slate-800 pl-4">
