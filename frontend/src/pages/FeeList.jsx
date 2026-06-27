@@ -4,7 +4,7 @@ import { feeService } from '../services/fee.service';
 import { studentService } from '../services/student.service';
 import { feeSchema } from '../validations/fee.validation';
 import useAuth from '../hooks/useAuth';
-import { Plus, Edit2, Trash2, Check, X, AlertCircle, Calendar, User, DollarSign, Filter } from 'lucide-react';
+import { Plus, Edit2, Trash2, Check, X, AlertCircle, Calendar, User, IndianRupee, Filter } from 'lucide-react';
 
 const FeeList = () => {
   const { user } = useAuth();
@@ -238,7 +238,7 @@ const FeeList = () => {
 
                 <div className="flex items-baseline justify-between border-t border-slate-850 pt-3">
                   <span className="text-xs text-slate-450">Amount:</span>
-                  <span className="text-lg font-bold text-white">${f.amount}</span>
+                  <span className="text-lg font-bold text-white">₹{f.amount}</span>
                 </div>
 
                 {f.paymentDate && (
@@ -303,7 +303,7 @@ const FeeList = () => {
                         {f.student?.class || '—'}
                       </td>
                       <td className="px-6 py-4 text-slate-350">{f.student?.rollNumber || '—'}</td>
-                      <td className="px-6 py-4 font-extrabold text-white">${f.amount}</td>
+                      <td className="px-6 py-4 font-extrabold text-white">₹{f.amount}</td>
                       <td className="px-6 py-4">
                         <span className={`px-2.5 py-0.5 rounded-full text-xs font-semibold ${
                           f.status === 'Paid' 
@@ -454,7 +454,7 @@ const FeeList = () => {
                 </label>
                 <div className="relative">
                   <div className="pointer-events-none absolute inset-y-0 left-0 flex items-center pl-3">
-                    <DollarSign className="h-5 w-5 text-slate-500" />
+                    <IndianRupee className="h-5 w-5 text-slate-500" />
                   </div>
                   <input
                     id="amount"

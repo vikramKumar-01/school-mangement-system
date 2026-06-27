@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { Outlet, Link, useNavigate, useLocation } from 'react-router-dom';
 import useAuth from '../hooks/useAuth';
+import { useTheme } from '../context/ThemeContext';
 import { 
   LayoutDashboard, 
   Users, 
@@ -12,14 +13,18 @@ import {
   LogOut, 
   Menu, 
   X,
-  Bell
+  Bell,
+  Sun,
+  Moon,
+  ChevronLeft,
+  ChevronRight
 } from 'lucide-react';
 
 const MainLayout = () => {
   const { user, logout, isAuthenticated, loading } = useAuth();
+  const { theme, toggleTheme } = useTheme();
   const navigate = useNavigate();
   const location = useLocation();
-  
   const [mobileOpen, setMobileOpen] = useState(false);
   const [sidebarCollapsed, setSidebarCollapsed] = useState(false);
 
@@ -37,21 +42,21 @@ const MainLayout = () => {
 
   if (loading || !user) {
     return (
-      <div className="flex min-h-screen items-center justify-center bg-slate-950 text-white">
-        <div className="h-10 w-10 animate-spin rounded-full border-4 border-slate-800 border-t-sky-500"></div>
+      <div className="flex min-h-screen items-center justify-center bg-slate-50 dark:bg-slate-950 text-slate-800 dark:text-white">
+        <div className="h-10 w-10 animate-spin rounded-full border-4 border-slate-200 dark:border-slate-800 border-t-blue-650"></div>
       </div>
     );
   }
 
   // Sidebar navigation items based on user role
   const menuItems = [
-    { name: 'Dashboard', path: '/', icon: LayoutDashboard, roles: ['admin', 'teacher', 'student', 'parent'] },
-    { name: 'Students', path: '/students', icon: Users, roles: ['admin', 'teacher'] },
-    { name: 'Teachers', path: '/teachers', icon: GraduationCap, roles: ['admin'] },
-    { name: 'Classes', path: '/classes', icon: BookOpen, roles: ['admin'] },
-    { name: 'Fees', path: '/fees', icon: DollarSign, roles: ['admin', 'student'] },
-    { name: 'Attendance', path: '/attendance', icon: CalendarCheck, roles: ['admin', 'teacher', 'student', 'parent'] },
-    { name: 'Profile', path: '/profile', icon: User, roles: ['admin', 'teacher', 'student', 'parent'] },
+    { name: 'Dashboard', path: '/dashboard', icon: LayoutDashboard, roles: ['admin', 'teacher', 'student', 'parent'] },
+    { name: 'Students', path: '/dashboard/students', icon: Users, roles: ['admin', 'teacher'] },
+    { name: 'Teachers', path: '/dashboard/teachers', icon: GraduationCap, roles: ['admin'] },
+    { name: 'Classes', path: '/dashboard/classes', icon: BookOpen, roles: ['admin'] },
+    { name: 'Fees', path: '/dashboard/fees', icon: DollarSign, roles: ['admin', 'student'] },
+    { name: 'Attendance', path: '/dashboard/attendance', icon: CalendarCheck, roles: ['admin', 'teacher', 'student', 'parent'] },
+    { name: 'Profile', path: '/dashboard/profile', icon: User, roles: ['admin', 'teacher', 'student', 'parent'] },
   ];
 
   // Filter menu items by user role
@@ -63,7 +68,7 @@ const MainLayout = () => {
   };
 
   return (
-    <div className="flex h-screen overflow-hidden bg-slate-950 text-slate-100">
+    <div className="flex h-screen overflow-hidden bg-slate-50 dark:bg-slate-950 text-slate-800 dark:text-slate-100 transition-colors duration-300">
       
       {/* 1. Mobile Drawer Sidebar (with absolute overlay) */}
       <div className={`fixed inset-0 z-50 flex lg:hidden transition-opacity duration-300 ${mobileOpen ? 'opacity-100 pointer-events-auto' : 'opacity-0 pointer-events-none'}`}>
@@ -74,12 +79,12 @@ const MainLayout = () => {
         ></div>
         
         {/* Drawer panel */}
-        <div className={`relative flex w-full max-w-xs flex-1 flex-col bg-slate-900 border-r border-slate-800 transition-transform duration-300 ease-in-out ${mobileOpen ? 'translate-x-0' : '-translate-x-full'}`}>
-          <div className="flex h-16 items-center justify-between px-6 border-b border-slate-850">
-            <span className="text-xl font-bold bg-gradient-to-r from-sky-400 to-indigo-500 bg-clip-text text-transparent">Apex Academy</span>
+        <div className={`relative flex w-full max-w-xs flex-1 flex-col bg-white dark:bg-slate-900 border-r border-slate-200 dark:border-slate-800 transition-transform duration-300 ease-in-out ${mobileOpen ? 'translate-x-0' : '-translate-x-full'}`}>
+          <div className="flex h-16 items-center justify-between px-6 border-b border-slate-200 dark:border-slate-800/80">
+            <span className="text-xl font-bold bg-gradient-to-r from-blue-600 to-indigo-500 bg-clip-text text-transparent font-heading">Apex Academy</span>
             <button 
               type="button" 
-              className="rounded-lg p-1.5 text-slate-400 hover:bg-slate-800 hover:text-white"
+              className="rounded-lg p-1.5 text-slate-500 dark:text-slate-400 hover:bg-slate-100 dark:hover:bg-slate-800"
               onClick={() => setMobileOpen(false)}
             >
               <X className="h-6 w-6" />
@@ -96,8 +101,8 @@ const MainLayout = () => {
                   to={item.path}
                   className={`flex items-center gap-3 px-4 py-3 rounded-xl text-sm font-medium transition-all ${
                     isActive 
-                      ? 'bg-sky-500/10 text-sky-400 border-l-2 border-sky-400' 
-                      : 'text-slate-400 hover:bg-slate-800/50 hover:text-white'
+                      ? 'bg-blue-600/10 text-blue-600 dark:text-sky-400 border-l-2 border-blue-600 dark:border-sky-400' 
+                      : 'text-slate-500 dark:text-slate-400 hover:bg-slate-100 dark:hover:bg-slate-800/50 hover:text-slate-900 dark:hover:text-white'
                   }`}
                 >
                   <Icon className="h-5 w-5 shrink-0" />
@@ -107,12 +112,12 @@ const MainLayout = () => {
             })}
           </nav>
           
-          <div className="p-4 border-t border-slate-800">
+          <div className="p-4 border-t border-slate-200 dark:border-slate-800">
             <button
               onClick={handleLogout}
-              className="flex w-full items-center gap-3 px-4 py-3 rounded-xl text-sm font-medium text-red-400 hover:bg-red-500/10 transition-all"
+              className="flex w-full items-center gap-3 px-4 py-3 rounded-xl text-sm font-medium text-red-655 hover:bg-red-50 dark:hover:bg-red-950/30 transition-all cursor-pointer"
             >
-              <LogOut className="h-5 w-5" />
+              <LogOut className="h-5 w-5 text-red-500" />
               Log Out
             </button>
           </div>
@@ -121,21 +126,21 @@ const MainLayout = () => {
 
       {/* 2. Desktop Sidebar */}
       <aside 
-        className={`hidden lg:flex flex-col bg-slate-900 border-r border-slate-800 transition-all duration-300 shrink-0 ${
+        className={`hidden lg:flex flex-col bg-white dark:bg-slate-900 border-r border-slate-200 dark:border-slate-800 transition-all duration-300 shrink-0 ${
           sidebarCollapsed ? 'w-20' : 'w-64'
         }`}
       >
-        <div className="flex h-16 items-center justify-between px-6 border-b border-slate-800/80">
+        <div className="flex h-16 items-center justify-between px-6 border-b border-slate-200 dark:border-slate-800/80">
           {!sidebarCollapsed && (
-            <span className="text-xl font-bold bg-gradient-to-r from-sky-400 to-indigo-500 bg-clip-text text-transparent">
+            <span className="text-xl font-bold bg-gradient-to-r from-blue-600 to-indigo-500 bg-clip-text text-transparent font-heading">
               Apex Academy
             </span>
           )}
           <button
             onClick={() => setSidebarCollapsed(!sidebarCollapsed)}
-            className="rounded-lg p-1.5 text-slate-400 hover:bg-slate-800 hover:text-white ml-auto"
+            className="rounded-lg p-1.5 text-slate-500 dark:text-slate-400 hover:bg-slate-100 dark:hover:bg-slate-800 ml-auto cursor-pointer"
           >
-            <Menu className="h-5 w-5" />
+            {sidebarCollapsed ? <ChevronRight className="h-5 w-5" /> : <ChevronLeft className="h-5 w-5" />}
           </button>
         </div>
 
@@ -147,16 +152,16 @@ const MainLayout = () => {
               <Link
                 key={item.name}
                 to={item.path}
-                className={`flex items-center gap-3 px-4 py-3 rounded-xl text-sm font-medium transition-all group ${
+                className={`flex items-center gap-3 px-4 py-3 rounded-xl text-sm font-medium transition-all group relative ${
                   isActive 
-                    ? 'bg-sky-500/10 text-sky-400 border-l-2 border-sky-400' 
-                    : 'text-slate-400 hover:bg-slate-800/40 hover:text-slate-100'
+                    ? 'bg-blue-600/10 text-blue-600 dark:text-sky-400 border-l-2 border-blue-600 dark:border-sky-400 font-semibold' 
+                    : 'text-slate-500 dark:text-slate-400 hover:bg-slate-100 dark:hover:bg-slate-800/40 hover:text-slate-900 dark:hover:text-white'
                 }`}
               >
                 <Icon className="h-5 w-5 shrink-0" />
                 {!sidebarCollapsed && <span>{item.name}</span>}
                 {sidebarCollapsed && (
-                  <div className="absolute left-20 scale-0 group-hover:scale-100 bg-slate-800 text-white text-xs px-2 py-1.5 rounded-md shadow-lg transition-all z-55 pointer-events-none whitespace-nowrap">
+                  <div className="absolute left-20 scale-0 group-hover:scale-100 bg-slate-850 dark:bg-slate-800 text-white text-xs px-2 py-1.5 rounded-md shadow-lg transition-all z-55 pointer-events-none whitespace-nowrap">
                     {item.name}
                   </div>
                 )}
@@ -165,10 +170,10 @@ const MainLayout = () => {
           })}
         </nav>
 
-        <div className="p-4 border-t border-slate-800">
+        <div className="p-4 border-t border-slate-200 dark:border-slate-800">
           <button
             onClick={handleLogout}
-            className="flex w-full items-center gap-3 px-4 py-3 rounded-xl text-sm font-medium text-red-400 hover:bg-red-500/10 transition-all"
+            className="flex w-full items-center gap-3 px-4 py-3 rounded-xl text-sm font-medium text-red-600 dark:text-red-400 hover:bg-red-50 dark:hover:bg-red-950/20 transition-all cursor-pointer"
           >
             <LogOut className="h-5 w-5 shrink-0" />
             {!sidebarCollapsed && <span>Log Out</span>}
@@ -179,34 +184,43 @@ const MainLayout = () => {
       {/* 3. Main content area */}
       <div className="flex flex-1 flex-col overflow-hidden">
         {/* Navbar */}
-        <header className="flex h-16 shrink-0 items-center justify-between border-b border-slate-800 bg-slate-900/60 px-6 backdrop-blur-md">
+        <header className="flex h-16 shrink-0 items-center justify-between border-b border-slate-200 dark:border-slate-800 bg-white/85 dark:bg-slate-900/60 px-6 backdrop-blur-md transition-colors duration-300">
           {/* Left panel */}
           <div className="flex items-center gap-4">
             <button
               type="button"
-              className="rounded-lg p-1.5 text-slate-400 hover:bg-slate-800 hover:text-white lg:hidden"
+              className="rounded-lg p-1.5 text-slate-500 dark:text-slate-400 hover:bg-slate-100 dark:hover:bg-slate-800 lg:hidden"
               onClick={() => setMobileOpen(true)}
             >
               <Menu className="h-6 w-6" />
             </button>
             <div className="hidden sm:block">
-              <span className="text-sm font-medium text-slate-400">Welcome back,</span>
-              <h2 className="text-lg font-bold text-white leading-none mt-0.5">{user.fullName}</h2>
+              <span className="text-sm font-medium text-slate-500 dark:text-slate-400">Welcome back,</span>
+              <h2 className="text-lg font-bold text-slate-900 dark:text-white leading-none mt-0.5">{user.fullName}</h2>
             </div>
           </div>
 
           {/* Right panel */}
-          <div className="flex items-center gap-4">
+          <div className="flex items-center gap-3">
+            {/* Theme Toggle Button */}
+            <button 
+              onClick={toggleTheme}
+              className="rounded-xl p-2 text-slate-500 dark:text-slate-400 hover:bg-slate-100 dark:hover:bg-slate-800 text-slate-655 dark:text-slate-300 transition-colors cursor-pointer"
+              title={theme === 'dark' ? 'Switch to Light Mode' : 'Switch to Dark Mode'}
+            >
+              {theme === 'dark' ? <Sun className="h-5 w-5" /> : <Moon className="h-5 w-5" />}
+            </button>
+
             {/* Notification Icon */}
-            <button className="relative rounded-xl p-2 text-slate-400 hover:bg-slate-800/80 hover:text-white transition-all">
-              <span className="absolute right-2 top-2 h-2 w-2 rounded-full bg-sky-500"></span>
+            <button className="relative rounded-xl p-2 text-slate-500 dark:text-slate-400 hover:bg-slate-100 dark:hover:bg-slate-800 transition-all cursor-pointer">
+              <span className="absolute right-2 top-2 h-2 w-2 rounded-full bg-blue-500"></span>
               <Bell className="h-5 w-5" />
             </button>
 
             {/* Profile Menu Dropdown Button */}
-            <div className="flex items-center gap-3 border-l border-slate-800 pl-4">
-              <Link to="/profile" className="flex items-center gap-2.5 group">
-                <div className="relative h-9 w-9 shrink-0 overflow-hidden rounded-full bg-slate-700 border border-slate-650 group-hover:border-sky-500 transition-all">
+            <div className="flex items-center gap-3 border-l border-slate-200 dark:border-slate-800 pl-4">
+              <Link to="/dashboard/profile" className="flex items-center gap-2.5 group">
+                <div className="relative h-9 w-9 shrink-0 overflow-hidden rounded-full bg-slate-100 dark:bg-slate-700 border border-slate-200 dark:border-slate-650 group-hover:border-blue-500 transition-all">
                   {user.profileImage ? (
                     <img 
                       src={user.profileImage} 
@@ -215,13 +229,13 @@ const MainLayout = () => {
                       loading="lazy"
                     />
                   ) : (
-                    <div className="flex h-full w-full items-center justify-center font-bold text-slate-300 text-sm">
+                    <div className="flex h-full w-full items-center justify-center font-bold text-slate-650 dark:text-slate-300 text-sm">
                       {user.fullName.split(' ').map(n => n[0]).join('').toUpperCase().substring(0, 2)}
                     </div>
                   )}
                 </div>
                 <div className="hidden md:block text-left">
-                  <p className="text-xs font-semibold text-white group-hover:text-sky-400 transition-all leading-tight">{user.fullName}</p>
+                  <p className="text-xs font-semibold text-slate-800 dark:text-white group-hover:text-blue-600 dark:group-hover:text-sky-400 transition-all leading-tight">{user.fullName}</p>
                   <p className="text-[10px] text-slate-500 capitalize leading-none mt-0.5">{user.role}</p>
                 </div>
               </Link>
@@ -230,7 +244,7 @@ const MainLayout = () => {
         </header>
 
         {/* Content Outlet */}
-        <main className="flex-1 overflow-y-auto bg-slate-950 p-4 sm:p-6 lg:p-8">
+        <main className="flex-1 overflow-y-auto bg-slate-50 dark:bg-slate-950 p-4 sm:p-6 lg:p-8 transition-colors duration-300">
           <div className="mx-auto max-w-7xl">
             <Outlet />
           </div>

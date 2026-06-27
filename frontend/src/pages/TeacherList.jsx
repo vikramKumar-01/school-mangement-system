@@ -3,7 +3,7 @@ import { useFormik } from 'formik';
 import { teacherService } from '../services/teacher.service';
 import { teacherSchema } from '../validations/teacher.validation';
 import useAuth from '../hooks/useAuth';
-import { Plus, Edit2, Trash2, Search, X, AlertCircle, Phone, Mail, BookOpen, CircleDollarSign } from 'lucide-react';
+import { Plus, Edit2, Trash2, Search, X, AlertCircle, Phone, Mail, BookOpen, IndianRupee } from 'lucide-react';
 
 const TeacherList = () => {
   const { user } = useAuth();
@@ -221,8 +221,8 @@ const TeacherList = () => {
                   )}
                   {isAdmin && t.salary && (
                     <div className="flex items-center gap-2">
-                      <CircleDollarSign className="h-3.5 w-3.5 text-slate-500 shrink-0" />
-                      <span className="text-slate-300 font-semibold">Salary: ${t.salary.toLocaleString()}</span>
+                      <IndianRupee className="h-3.5 w-3.5 text-slate-500 shrink-0" />
+                      <span className="text-slate-300 font-semibold">Salary: ₹{t.salary.toLocaleString()}</span>
                     </div>
                   )}
                 </div>
@@ -280,7 +280,7 @@ const TeacherList = () => {
                       </td>
                       {isAdmin && (
                         <td className="px-6 py-4 text-emerald-400 font-semibold font-mono">
-                          {t.salary ? `$${t.salary.toLocaleString()}` : '—'}
+                          {t.salary ? `₹${t.salary.toLocaleString()}` : '—'}
                         </td>
                       )}
                       {isAdmin && (

@@ -63,17 +63,17 @@ const Register = () => {
 
   if (success) {
     return (
-      <div className="text-center py-8 space-y-4 animate-fade-in">
+      <div className="text-center py-8 space-y-4 animate-fade-in flex flex-col items-center">
         <div className="inline-flex h-16 w-16 items-center justify-center rounded-full bg-emerald-500/10 text-emerald-400">
           <CheckCircle className="h-10 w-10" />
         </div>
-        <h2 className="text-2xl font-bold text-white">Registration Successful!</h2>
-        <p className="text-sm text-slate-400 max-w-xs mx-auto">
+        <h2 className="text-2xl font-bold text-slate-900 dark:text-white font-heading">Registration Successful!</h2>
+        <p className="text-sm text-slate-500 dark:text-slate-400 max-w-xs mx-auto leading-relaxed">
           Your account has been created. Redirecting you to the sign-in page...
         </p>
         <Link 
           to="/login" 
-          className="inline-block mt-4 text-sm font-semibold text-sky-400 hover:text-sky-350"
+          className="inline-block mt-4 text-sm font-bold text-blue-600 dark:text-blue-400 hover:text-blue-700 dark:hover:text-blue-300"
         >
           Click here if not redirected automatically
         </Link>
@@ -83,26 +83,26 @@ const Register = () => {
 
   return (
     <div className="space-y-6">
-      <div className="space-y-2 text-center">
-        <h2 className="text-2xl font-bold tracking-tight text-white">Create Account</h2>
-        <p className="text-sm text-slate-400">Get started with Apex Academy</p>
+      <div className="space-y-1.5 text-center">
+        <h2 className="text-2xl font-bold tracking-tight text-slate-900 dark:text-white font-heading transition-colors">Create Account</h2>
+        <p className="text-sm text-slate-500 dark:text-slate-400 font-medium transition-colors">Get started with Apex Academy</p>
       </div>
 
       {error && (
-        <div className="flex items-center gap-3 rounded-xl bg-red-500/10 border border-red-500/20 p-4 text-sm text-red-400">
-          <AlertCircle className="h-5 w-5 shrink-0" />
-          <p>{error}</p>
+        <div className="flex items-center gap-3 rounded-xl bg-red-50 dark:bg-red-950/30 border border-red-100 dark:border-red-900/50 p-4 text-sm text-red-655 dark:text-red-400">
+          <AlertCircle className="h-5 w-5 shrink-0 text-red-500" />
+          <p className="font-medium">{error}</p>
         </div>
       )}
 
       <form onSubmit={formik.handleSubmit} className="space-y-4">
         {/* Profile Image Upload */}
         <div className="flex flex-col items-center space-y-2">
-          <div className="relative h-20 w-20 overflow-hidden rounded-full bg-slate-850 border-2 border-dashed border-slate-700 flex items-center justify-center hover:border-sky-500/50 transition-colors">
+          <div className="relative h-20 w-20 overflow-hidden rounded-full bg-slate-50 dark:bg-slate-950 border-2 border-dashed border-slate-200 dark:border-slate-800 flex items-center justify-center hover:border-blue-500/50 transition-colors">
             {imagePreview ? (
               <img src={imagePreview} alt="Preview" className="h-full w-full object-cover" />
             ) : (
-              <Camera className="h-8 w-8 text-slate-500" />
+              <Camera className="h-8 w-8 text-slate-400 dark:text-slate-500" />
             )}
             <input
               id="profileImage"
@@ -113,24 +113,26 @@ const Register = () => {
               onChange={handleImageChange}
             />
           </div>
-          <span className="text-xs text-slate-450 font-medium">Upload Profile Picture</span>
+          <span className="text-xs text-slate-500 dark:text-slate-400 font-bold uppercase tracking-wide">Upload Profile Picture</span>
         </div>
 
         {/* Full Name Field */}
         <div className="space-y-1 text-left">
-          <label className="text-xs font-semibold text-slate-350" htmlFor="fullName">
+          <label className="text-xs font-bold text-slate-700 dark:text-slate-350 uppercase tracking-wide transition-colors" htmlFor="fullName">
             Full Name
           </label>
           <div className="relative">
             <div className="pointer-events-none absolute inset-y-0 left-0 flex items-center pl-3">
-              <User className="h-5 w-5 text-slate-500" />
+              <User className="h-5 w-5 text-slate-400 dark:text-slate-500" />
             </div>
             <input
               id="fullName"
               name="fullName"
               type="text"
-              className={`w-full pl-10 glass-input ${
-                formik.touched.fullName && formik.errors.fullName ? 'border-red-500/50' : ''
+              className={`w-full pl-10 bg-white dark:bg-slate-950 border border-slate-200 dark:border-slate-800 rounded-xl px-4 py-2.5 text-slate-800 dark:text-slate-100 placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 transition-all text-sm ${
+                formik.touched.fullName && formik.errors.fullName
+                  ? 'border-red-300 dark:border-red-900/50 focus:ring-red-500/20 focus:border-red-500'
+                  : ''
               }`}
               placeholder="John Doe"
               value={formik.values.fullName}
@@ -139,25 +141,27 @@ const Register = () => {
             />
           </div>
           {formik.touched.fullName && formik.errors.fullName && (
-            <p className="text-xs text-red-400 mt-1">{formik.errors.fullName}</p>
+            <p className="text-xs text-red-505 mt-1 font-medium">{formik.errors.fullName}</p>
           )}
         </div>
 
         {/* Email Field */}
         <div className="space-y-1 text-left">
-          <label className="text-xs font-semibold text-slate-350" htmlFor="email">
+          <label className="text-xs font-bold text-slate-700 dark:text-slate-350 uppercase tracking-wide transition-colors" htmlFor="email">
             Email Address
           </label>
           <div className="relative">
             <div className="pointer-events-none absolute inset-y-0 left-0 flex items-center pl-3">
-              <Mail className="h-5 w-5 text-slate-500" />
+              <Mail className="h-5 w-5 text-slate-400 dark:text-slate-500" />
             </div>
             <input
               id="email"
               name="email"
               type="email"
-              className={`w-full pl-10 glass-input ${
-                formik.touched.email && formik.errors.email ? 'border-red-500/50' : ''
+              className={`w-full pl-10 bg-white dark:bg-slate-950 border border-slate-200 dark:border-slate-800 rounded-xl px-4 py-2.5 text-slate-800 dark:text-slate-100 placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 transition-all text-sm ${
+                formik.touched.email && formik.errors.email
+                  ? 'border-red-300 dark:border-red-900/50 focus:ring-red-500/20 focus:border-red-500'
+                  : ''
               }`}
               placeholder="you@school.com"
               value={formik.values.email}
@@ -166,25 +170,27 @@ const Register = () => {
             />
           </div>
           {formik.touched.email && formik.errors.email && (
-            <p className="text-xs text-red-400 mt-1">{formik.errors.email}</p>
+            <p className="text-xs text-red-500 mt-1 font-medium">{formik.errors.email}</p>
           )}
         </div>
 
         {/* Password Field */}
         <div className="space-y-1 text-left">
-          <label className="text-xs font-semibold text-slate-350" htmlFor="password">
+          <label className="text-xs font-bold text-slate-700 dark:text-slate-350 uppercase tracking-wide transition-colors" htmlFor="password">
             Password
           </label>
           <div className="relative">
             <div className="pointer-events-none absolute inset-y-0 left-0 flex items-center pl-3">
-              <Lock className="h-5 w-5 text-slate-500" />
+              <Lock className="h-5 w-5 text-slate-400 dark:text-slate-500" />
             </div>
             <input
               id="password"
               name="password"
               type="password"
-              className={`w-full pl-10 glass-input ${
-                formik.touched.password && formik.errors.password ? 'border-red-500/50' : ''
+              className={`w-full pl-10 bg-white dark:bg-slate-950 border border-slate-200 dark:border-slate-800 rounded-xl px-4 py-2.5 text-slate-800 dark:text-slate-100 placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 transition-all text-sm ${
+                formik.touched.password && formik.errors.password
+                  ? 'border-red-300 dark:border-red-900/50 focus:ring-red-500/20 focus:border-red-500'
+                  : ''
               }`}
               placeholder="••••••••"
               value={formik.values.password}
@@ -193,33 +199,33 @@ const Register = () => {
             />
           </div>
           {formik.touched.password && formik.errors.password && (
-            <p className="text-xs text-red-400 mt-1">{formik.errors.password}</p>
+            <p className="text-xs text-red-500 mt-1 font-medium">{formik.errors.password}</p>
           )}
         </div>
 
         {/* Role Selection */}
         <div className="space-y-1 text-left">
-          <label className="text-xs font-semibold text-slate-350" htmlFor="role">
+          <label className="text-xs font-bold text-slate-700 dark:text-slate-350 uppercase tracking-wide transition-colors" htmlFor="role">
             I am a...
           </label>
           <select
             id="role"
             name="role"
-            className="w-full glass-input"
+            className="w-full bg-white dark:bg-slate-950 border border-slate-200 dark:border-slate-800 rounded-xl px-4 py-2.5 text-slate-800 dark:text-slate-150 focus:outline-none focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 text-sm font-medium transition-colors"
             value={formik.values.role}
             onChange={formik.handleChange}
           >
-            <option value="admin" className="bg-slate-900 text-white">Administrator</option>
-            <option value="teacher" className="bg-slate-900 text-white">Teacher</option>
-            <option value="student" className="bg-slate-900 text-white">Student</option>
-            <option value="parent" className="bg-slate-900 text-white">Parent</option>
+            <option value="admin" className="text-slate-800 dark:text-slate-800">Administrator</option>
+            <option value="teacher" className="text-slate-800 dark:text-slate-800">Teacher</option>
+            <option value="student" className="text-slate-800 dark:text-slate-800">Student</option>
+            <option value="parent" className="text-slate-800 dark:text-slate-800">Parent</option>
           </select>
         </div>
 
         <button
           type="submit"
           disabled={isSubmittingLocal}
-          className="flex w-full items-center justify-center rounded-xl bg-sky-500 px-4 py-3 text-sm font-semibold text-white shadow-lg hover:bg-sky-600 transition-all active:scale-[0.98] disabled:opacity-50 disabled:pointer-events-none min-h-[44px]"
+          className="flex w-full items-center justify-center rounded-xl bg-blue-600 hover:bg-blue-700 px-6 py-3 text-sm font-semibold text-white shadow-lg shadow-blue-500/10 hover:shadow-blue-500/20 transition-all active:scale-[0.98] disabled:opacity-50 disabled:pointer-events-none min-h-[44px] cursor-pointer"
         >
           {isSubmittingLocal ? (
             <div className="h-5 w-5 animate-spin rounded-full border-2 border-white border-t-transparent"></div>
@@ -229,9 +235,9 @@ const Register = () => {
         </button>
       </form>
 
-      <div className="text-center text-sm text-slate-400 mt-6">
+      <div className="text-center text-sm text-slate-500 dark:text-slate-400 mt-6 font-medium transition-colors">
         Already have an account?{' '}
-        <Link to="/login" className="font-semibold text-sky-400 hover:text-sky-350 transition-colors">
+        <Link to="/login" className="font-bold text-blue-600 dark:text-blue-400 hover:text-blue-700 dark:hover:text-blue-300 transition-colors">
           Sign In
         </Link>
       </div>

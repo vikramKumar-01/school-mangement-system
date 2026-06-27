@@ -3,7 +3,7 @@ import {
   Users, 
   GraduationCap, 
   BookOpen, 
-  DollarSign, 
+  IndianRupee, 
   TrendingUp, 
   UserCheck, 
   AlertCircle
@@ -103,7 +103,7 @@ const Dashboard = () => {
     { title: 'Total Students', value: displayStudents, icon: Users, color: 'from-sky-400 to-blue-500', label: '+12% from last term' },
     { title: 'Total Teachers', value: displayTeachers, icon: GraduationCap, color: 'from-violet-400 to-indigo-500', label: '1:12 Teacher-Student Ratio' },
     { title: 'Active Classes', value: displayClasses, icon: BookOpen, color: 'from-emerald-400 to-teal-500', label: '98% Average Attendance' },
-    { title: 'Revenue Collected', value: `$${displayRevenue.toLocaleString()}`, icon: DollarSign, color: 'from-amber-400 to-orange-500', label: '92% Fees Paid' },
+    { title: 'Revenue Collected', value: `₹${displayRevenue.toLocaleString()}`, icon: IndianRupee, color: 'from-amber-400 to-orange-500', label: '92% Fees Paid' },
   ];
 
   return (
