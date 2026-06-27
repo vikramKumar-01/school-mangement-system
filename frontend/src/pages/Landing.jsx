@@ -11,6 +11,7 @@ import {
 } from 'lucide-react';
 import useAuth from '../hooks/useAuth';
 import { useTheme } from '../context/ThemeContext';
+import { contactService } from '../services/contact.service';
 
 const Landing = () => {
   const navigate = useNavigate();
@@ -19,6 +20,7 @@ const Landing = () => {
   const [isScrolled, setIsScrolled] = useState(false);
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
   const [contactSuccess, setContactSuccess] = useState(false);
+  const [contactError, setContactError] = useState('');
 
   // Monitor scroll height to trigger solid white sticky header
   useEffect(() => {
@@ -65,10 +67,22 @@ const Landing = () => {
       subject: Yup.string().required('Subject is required').trim(),
       message: Yup.string().min(10, 'Message must be at least 10 characters').required('Message is required').trim(),
     }),
-    onSubmit: (values, { resetForm }) => {
-      setContactSuccess(true);
-      resetForm();
-      setTimeout(() => setContactSuccess(false), 5000);
+    onSubmit: async (values, { resetForm, setSubmitting }) => {
+      setContactError('');
+      setContactSuccess(false);
+      try {
+        await contactService.submit(values);
+        setContactSuccess(true);
+        resetForm();
+        setTimeout(() => setContactSuccess(false), 6000);
+      } catch (err) {
+        const msg =
+          err?.response?.data?.message ||
+          'Failed to send message. Please try again.';
+        setContactError(msg);
+      } finally {
+        setSubmitting(false);
+      }
     }
   });
 
@@ -111,29 +125,32 @@ const Landing = () => {
       name: 'Dr. Sarah Connor',
       role: 'Parent of Grade 9 Student',
       text: 'Apex Academy\'s online portal is incredibly convenient. I can review my daughter\'s attendance logs and grade reports instantly in real-time.',
-      avatar: 'https://images.unsplash.com/photo-1544005313-94ddf0286df2?auto=format&fit=crop&q=80&w=150'
+      initials: 'SC',
+      color: 'from-pink-500 to-rose-500'
     },
     {
       name: 'Prof. Richard Feynman',
       role: 'Head of Science Department',
       text: 'The digital dashboard organizes all my lesson schedules, grading pipelines, and attendance checklists. It lets me spend more time teaching.',
-      avatar: 'https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?auto=format&fit=crop&q=80&w=150'
+      initials: 'RF',
+      color: 'from-blue-500 to-indigo-500'
     },
     {
       name: 'Alexander Pierce',
       role: 'Alumni (Class of 2024)',
       text: 'The resources at Apex, from the computer labs to the mentorship, helped me build a solid foundation. The digital class notices kept us all aligned.',
-      avatar: 'https://images.unsplash.com/photo-1500648767791-00dcc994a43e?auto=format&fit=crop&q=80&w=150'
+      initials: 'AP',
+      color: 'from-emerald-500 to-teal-500'
     }
   ];
 
   const gallery = [
-    { title: 'School Building', image: 'https://images.unsplash.com/photo-1541339907198-e08756dedf3f?auto=format&fit=crop&q=80&w=400' },
-    { title: 'Smart Classroom', image: 'https://images.unsplash.com/photo-1427504494785-3a9ca7044f45?auto=format&fit=crop&q=80&w=400' },
-    { title: 'Computer Lab', image: 'https://images.unsplash.com/photo-1562774053-701939374585?auto=format&fit=crop&q=80&w=400' },
-    { title: 'Library', image: 'https://images.unsplash.com/photo-1521587760476-6c12a4b040da?auto=format&fit=crop&q=80&w=400' },
-    { title: 'Science Lab', image: 'https://images.unsplash.com/photo-1532187863486-abf9d39d66e8?auto=format&fit=crop&q=80&w=400' },
-    { title: 'Sports Playground', image: 'https://images.unsplash.com/photo-1587825140708-dfaf72ae4b04?auto=format&fit=crop&q=80&w=400' }
+    { title: 'School Building', image: '/school_campus.png', gradient: 'from-blue-600 to-indigo-700' },
+    { title: 'Smart Classroom', image: '/smart_classroom.png', gradient: 'from-emerald-600 to-teal-700' },
+    { title: 'Computer Lab', image: '/smart_classroom.png', gradient: 'from-violet-600 to-purple-700' },
+    { title: 'Library', image: '/school_library.png', gradient: 'from-amber-600 to-orange-700' },
+    { title: 'Science Lab', image: '/science_lab.png', gradient: 'from-rose-600 to-pink-700' },
+    { title: 'Sports Playground', image: '/sports_ground.png', gradient: 'from-sky-600 to-blue-700' }
   ];
 
   const logins = [
@@ -398,10 +415,11 @@ const Landing = () => {
             >
               <div className="relative w-full max-w-lg overflow-hidden rounded-3xl bg-white dark:bg-slate-900 border border-slate-100 dark:border-slate-800 p-3 shadow-2xl">
                 <img 
-                  src="https://images.unsplash.com/photo-1523050854058-8df90110c9f1?auto=format&fit=crop&q=80&w=800" 
+                  src="/hero_classroom.png" 
                   alt="Students in a smart classroom at Apex Academy" 
                   className="h-full w-full rounded-2xl object-cover aspect-[4/3] hover:scale-[1.02] transition-transform duration-700"
                   loading="eager"
+                  onError={(e) => { e.target.onerror = null; e.target.style.display='none'; e.target.parentElement.classList.add('bg-gradient-to-br','from-blue-100','to-indigo-200','dark:from-blue-900','dark:to-indigo-900'); }}
                 />
               </div>
 
@@ -452,10 +470,11 @@ const Landing = () => {
             >
               <div className="relative overflow-hidden rounded-3xl bg-slate-100 dark:bg-slate-900 aspect-[4/5] shadow-xl">
                 <img 
-                  src="https://images.unsplash.com/photo-1541339907198-e08756dedf3f?auto=format&fit=crop&q=80&w=800" 
+                  src="/school_campus.png" 
                   alt="Apex Academy School Campus Building" 
                   className="h-full w-full object-cover"
                   loading="lazy"
+                  onError={(e) => { e.target.onerror = null; e.target.style.display='none'; e.target.parentElement.classList.add('bg-gradient-to-br','from-blue-100','to-indigo-200','dark:from-blue-900','dark:to-indigo-900'); }}
                 />
               </div>
             </motion.div>
@@ -684,6 +703,7 @@ const Landing = () => {
                   alt={item.title} 
                   className="h-full w-full object-cover group-hover:scale-105 transition-transform duration-500" 
                   loading="lazy"
+                  onError={(e) => { e.target.onerror = null; e.target.style.display='none'; e.target.parentElement.classList.add(`bg-gradient-to-br`, item.gradient); }}
                 />
                 <div className="absolute inset-0 bg-gradient-to-t from-slate-950/70 via-transparent to-transparent opacity-0 group-hover:opacity-100 flex items-end p-5 transition-opacity duration-300">
                   <span className="text-sm font-bold text-white tracking-wide">{item.title}</span>
@@ -729,8 +749,8 @@ const Landing = () => {
                 </div>
 
                 <div className="flex items-center gap-3.5 border-t border-slate-100 dark:border-slate-800 pt-4 mt-6">
-                  <div className="h-10 w-10 overflow-hidden rounded-full bg-slate-105 shrink-0">
-                    <img src={test.avatar} alt={test.name} className="h-full w-full object-cover" />
+                  <div className={`h-10 w-10 rounded-full bg-gradient-to-br ${test.color} shrink-0 flex items-center justify-center text-white text-xs font-bold`}>
+                    {test.initials}
                   </div>
                   <div>
                     <h4 className="text-sm font-bold text-slate-900 dark:text-white leading-tight">{test.name}</h4>
@@ -918,9 +938,16 @@ const Landing = () => {
             <div className="lg:col-span-7">
               <div className="bg-slate-55 dark:bg-slate-900/40 border border-slate-200 dark:border-slate-800 rounded-3xl p-6 sm:p-8">
                 {contactSuccess && (
-                  <div className="mb-6 flex items-center gap-3 rounded-xl bg-emerald-500/10 border border-emerald-500/20 p-4 text-sm text-emerald-600">
+                  <div className="mb-6 flex items-center gap-3 rounded-xl bg-emerald-500/10 border border-emerald-500/20 p-4 text-sm text-emerald-600 dark:text-emerald-400">
                     <Check className="h-5 w-5 shrink-0" />
-                    <p>Message sent successfully! Our office will contact you soon.</p>
+                    <p className="font-medium">Message sent successfully! Our office will contact you soon.</p>
+                  </div>
+                )}
+
+                {contactError && (
+                  <div className="mb-6 flex items-center gap-3 rounded-xl bg-red-50 dark:bg-red-950/30 border border-red-100 dark:border-red-900/50 p-4 text-sm text-red-600 dark:text-red-400">
+                    <X className="h-5 w-5 shrink-0" />
+                    <p className="font-medium">{contactError}</p>
                   </div>
                 )}
 
@@ -935,7 +962,7 @@ const Landing = () => {
                       name="name"
                       type="text"
                       className="w-full bg-white dark:bg-slate-950 border border-slate-205 dark:border-slate-800 rounded-xl px-4 py-3 text-slate-800 dark:text-slate-100 placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-blue-500/30 focus:border-blue-500 transition-all text-sm"
-                      placeholder="Jane Doe"
+                      placeholder="Full name"
                       value={contactForm.values.name}
                       onChange={contactForm.handleChange}
                       onBlur={contactForm.handleBlur}
@@ -955,7 +982,7 @@ const Landing = () => {
                       name="email"
                       type="email"
                       className="w-full bg-white dark:bg-slate-955 border border-slate-200 dark:border-slate-800 rounded-xl px-4 py-3 text-slate-800 dark:text-slate-100 placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-blue-500/30 focus:border-blue-500 transition-all text-sm"
-                      placeholder="jane@email.com"
+                      placeholder="Email Address"
                       value={contactForm.values.email}
                       onChange={contactForm.handleChange}
                       onBlur={contactForm.handleBlur}
@@ -1008,9 +1035,16 @@ const Landing = () => {
                   <button
                     type="submit"
                     disabled={contactForm.isSubmitting}
-                    className="flex w-full items-center justify-center rounded-xl bg-blue-600 hover:bg-blue-700 py-3 text-sm font-semibold text-white shadow-lg shadow-blue-500/10 transition-all active:scale-[0.98] min-h-[44px] cursor-pointer"
+                    className="flex w-full items-center justify-center gap-2 rounded-xl bg-blue-600 hover:bg-blue-700 py-3 text-sm font-semibold text-white shadow-lg shadow-blue-500/10 transition-all active:scale-[0.98] min-h-[44px] cursor-pointer disabled:opacity-60 disabled:pointer-events-none"
                   >
-                    Submit Inquiry Message
+                    {contactForm.isSubmitting ? (
+                      <>
+                        <div className="h-4 w-4 animate-spin rounded-full border-2 border-white border-t-transparent" />
+                        Sending...
+                      </>
+                    ) : (
+                      'Submit Inquiry Message'
+                    )}
                   </button>
                 </form>
               </div>

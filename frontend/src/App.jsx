@@ -17,6 +17,7 @@ import TeacherList from './pages/TeacherList';
 import FeeList from './pages/FeeList';
 import AttendanceList from './pages/AttendanceList';
 import Profile from './pages/Profile';
+import ContactMessages from './pages/ContactMessages';
 
 function App() {
   return (
@@ -83,6 +84,15 @@ function App() {
             />
 
             <Route path="profile" element={<Profile />} />
+
+            <Route
+              path="messages"
+              element={
+                <RoleProtectedRoute allowedRoles={['admin']}>
+                  <ContactMessages />
+                </RoleProtectedRoute>
+              }
+            />
           </Route>
 
           {/* Catch-all Fallback */}

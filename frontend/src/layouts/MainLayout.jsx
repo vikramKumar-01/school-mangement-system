@@ -17,7 +17,8 @@ import {
   Sun,
   Moon,
   ChevronLeft,
-  ChevronRight
+  ChevronRight,
+  MessageSquare
 } from 'lucide-react';
 
 const MainLayout = () => {
@@ -56,6 +57,7 @@ const MainLayout = () => {
     { name: 'Classes', path: '/dashboard/classes', icon: BookOpen, roles: ['admin'] },
     { name: 'Fees', path: '/dashboard/fees', icon: DollarSign, roles: ['admin', 'student'] },
     { name: 'Attendance', path: '/dashboard/attendance', icon: CalendarCheck, roles: ['admin', 'teacher', 'student', 'parent'] },
+    { name: 'Messages', path: '/dashboard/messages', icon: MessageSquare, roles: ['admin'] },
     { name: 'Profile', path: '/dashboard/profile', icon: User, roles: ['admin', 'teacher', 'student', 'parent'] },
   ];
 
