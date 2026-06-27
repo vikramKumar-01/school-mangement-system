@@ -15,6 +15,14 @@ const NotificationBell = ({ userRole }) => {
   const [pos, setPos] = useState({ top: 0, right: 0 });
   const bellRef = useRef(null);
 
+  const getReadIds = useCallback(() => {
+    try {
+      return JSON.parse(localStorage.getItem(`readNotifications_${userRole}`) || '[]');
+    } catch {
+      return [];
+    }
+  }, [userRole]);
+
   // ── Position the fixed dropdown below the bell button ────────────────────
   const calcPos = useCallback(() => {
     if (!bellRef.current) return;
@@ -128,8 +136,14 @@ const NotificationBell = ({ userRole }) => {
         });
       }
 
-      setNotifications(items);
-      setUnreadCount(items.filter((n) => n.unread).length);
+      const readIds = getReadIds();
+      const updatedItems = items.map(item => ({
+        ...item,
+        unread: item.unread && !readIds.includes(item.id)
+      }));
+
+      setNotifications(updatedItems);
+      setUnreadCount(updatedItems.filter((n) => n.unread).length);
     } catch (err) {
       console.error('Notification fetch error:', err);
     } finally {
@@ -174,8 +188,22 @@ const NotificationBell = ({ userRole }) => {
 
   const handleOpen = () => { calcPos(); setOpen((o) => !o); };
   const markAllRead = () => {
+    const ids = notifications.map(n => n.id);
+    const existing = getReadIds();
+    localStorage.setItem(`readNotifications_${userRole}`, JSON.stringify([...new Set([...existing, ...ids])]));
+    
     setNotifications((p) => p.map((n) => ({ ...n, unread: false })));
     setUnreadCount(0);
+  };
+
+  const markAsRead = (id) => {
+    const existing = getReadIds();
+    if (!existing.includes(id)) {
+      localStorage.setItem(`readNotifications_${userRole}`, JSON.stringify([...existing, id]));
+      setNotifications((p) => p.map((n) => n.id === id ? { ...n, unread: false } : n));
+      setUnreadCount((c) => Math.max(0, c - 1));
+    }
+    setOpen(false);
   };
 
   // ── Dropdown via portal so it escapes parent overflow ────────────────────
@@ -272,7 +300,7 @@ const NotificationBell = ({ userRole }) => {
                   {notif.link && (
                     <Link
                       to={notif.link}
-                      onClick={() => setOpen(false)}
+                      onClick={() => markAsRead(notif.id)}
                       className="inline-flex items-center gap-1 text-[11px] font-bold text-blue-600 dark:text-blue-400 hover:text-blue-700 dark:hover:text-blue-300 mt-1.5"
                     >
                       {notif.linkLabel}

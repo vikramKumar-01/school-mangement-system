@@ -9,12 +9,14 @@ import {
 } from 'lucide-react';
 import useAuth from '../hooks/useAuth';
 import { studentService } from '../services/student.service';
+import { classService } from '../services/class.service';
 import { feeService } from '../services/fee.service';
 import { attendanceService } from '../services/attendance.service';
 import { assignmentService } from '../services/assignment.service';
 import { noticeService } from '../services/notice.service';
 import { marksService } from '../services/marks.service';
 import { timetableService } from '../services/timetable.service';
+import { studyMaterialService } from '../services/studymaterial.service';
 
 const StudentDashboard = () => {
   const { user } = useAuth();
@@ -55,15 +57,22 @@ const StudentDashboard = () => {
         const studentId = matched?._id;
         const className = matched?.class;
 
+        // Fetch class object to get the real classId
+        const classRes = await classService.getAll().catch(() => null);
+        const matchedClassObj = (classRes?.classes || []).find(
+          (c) => c.className === className || `${c.className} ${c.section || ''}`.trim() === className || c.name === className
+        );
+        const actualClassId = matchedClassObj?._id || className;
+
         // 2. Load other dynamic services in parallel
         const [feeRes, attRes, assignRes, noticeRes, marksRes, timetableRes, matRes] = await Promise.all([
           feeService.getAll(studentId ? { studentId } : {}).catch(() => null),
           attendanceService.getAll(studentId ? { studentId } : {}).catch(() => null),
-          assignmentService.getAll(className ? { classId: className } : {}).catch(() => null),
+          assignmentService.getAll(actualClassId ? { classId: actualClassId } : {}).catch(() => null),
           noticeService.getAll().catch(() => null),
           marksService.getAll(studentId ? { studentId } : {}).catch(() => null),
-          timetableService.getAll(className ? { classId: className } : {}).catch(() => null),
-          studyMaterialService.getAll(className ? { classId: className } : {}).catch(() => null),
+          timetableService.getAll(actualClassId ? { classId: actualClassId } : {}).catch(() => null),
+          studyMaterialService.getAll(actualClassId ? { classId: actualClassId } : {}).catch(() => null),
         ]);
 
         if (feeRes?.fees) setFees(feeRes.fees);

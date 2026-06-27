@@ -206,7 +206,7 @@ const TeacherDashboard = () => {
         {
           id: Date.now(),
           title: assignmentForm.title,
-          class: matchedClass?.name || 'Class Unit',
+          class: matchedClass?.className ? `${matchedClass.className} ${matchedClass.section || ''}` : 'Class Unit',
           due: assignmentForm.dueDate || 'Next week',
           submissions: '0/' + (matchedClass?.studentsCount || '40')
         },
@@ -670,11 +670,11 @@ const TeacherDashboard = () => {
                       <label className="text-xs font-bold text-slate-450 dark:text-slate-500 uppercase tracking-wide">Due Date & Time</label>
                       <input 
                         required 
-                        type="text" 
-                        placeholder="e.g. Tomorrow, 11:59 PM"
+                        type="datetime-local" 
                         value={assignmentForm.dueDate}
+                        onClick={(e) => e.target.showPicker && e.target.showPicker()}
                         onChange={(e) => setAssignmentForm({ ...assignmentForm, dueDate: e.target.value })}
-                        className="w-full glass-input p-2.5 text-xs text-slate-850 dark:text-slate-200"
+                        className="w-full glass-input p-2.5 text-xs text-slate-850 dark:text-slate-200 cursor-pointer"
                       />
                     </div>
 
