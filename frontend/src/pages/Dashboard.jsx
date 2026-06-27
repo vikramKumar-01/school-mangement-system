@@ -26,6 +26,7 @@ import { classService } from '../services/class.service';
 import { feeService } from '../services/fee.service';
 import useAuth from '../hooks/useAuth';
 import StudentDashboard from './StudentDashboard';
+import TeacherDashboard from './TeacherDashboard';
 
 const Dashboard = () => {
   const { user } = useAuth();
@@ -33,6 +34,11 @@ const Dashboard = () => {
   // Students and parents see their personal dashboard
   if (user?.role === 'student' || user?.role === 'parent') {
     return <StudentDashboard />;
+  }
+
+  // Teachers see their class management dashboard
+  if (user?.role === 'teacher') {
+    return <TeacherDashboard />;
   }
   const [stats, setStats] = useState({
     studentsCount: 0,

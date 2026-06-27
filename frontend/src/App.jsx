@@ -59,7 +59,7 @@ function App() {
             <Route 
               path="classes" 
               element={
-                <RoleProtectedRoute allowedRoles={['admin']}>
+                <RoleProtectedRoute allowedRoles={['admin', 'teacher']}>
                   <ClassList />
                 </RoleProtectedRoute>
               } 
