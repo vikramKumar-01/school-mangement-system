@@ -426,7 +426,7 @@ const StudentList = () => {
                     className={`w-full glass-input py-2.5 ${
                       formik.touched.name && formik.errors.name ? 'border-red-500/50' : ''
                     }`}
-                    placeholder="Alice Johnson"
+                    placeholder=""
                     value={formik.values.name}
                     onChange={formik.handleChange}
                     onBlur={formik.handleBlur}
@@ -449,7 +449,7 @@ const StudentList = () => {
                     className={`w-full glass-input py-2.5 disabled:opacity-50 disabled:cursor-not-allowed ${
                       formik.touched.rollNumber && formik.errors.rollNumber ? 'border-red-500/50' : ''
                     }`}
-                    placeholder="e.g. 101"
+                    placeholder=""
                     value={formik.values.rollNumber}
                     onChange={formik.handleChange}
                     onBlur={formik.handleBlur}
@@ -516,7 +516,7 @@ const StudentList = () => {
                     name="fatherName"
                     type="text"
                     className="w-full glass-input py-2.5"
-                    placeholder="Robert Johnson"
+                    placeholder=""
                     value={formik.values.fatherName}
                     onChange={formik.handleChange}
                   />
@@ -534,7 +534,7 @@ const StudentList = () => {
                     className={`w-full glass-input py-2.5 ${
                       formik.touched.phone && formik.errors.phone ? 'border-red-500/50' : ''
                     }`}
-                    placeholder="+1 555-123-4567"
+                    placeholder=""
                     value={formik.values.phone}
                     onChange={formik.handleChange}
                     onBlur={formik.handleBlur}
@@ -555,7 +555,7 @@ const StudentList = () => {
                   name="address"
                   rows="2"
                   className="w-full glass-input py-2.5 resize-none"
-                  placeholder="123 Academic Way, City"
+                  placeholder=""
                   value={formik.values.address}
                   onChange={formik.handleChange}
                 ></textarea>

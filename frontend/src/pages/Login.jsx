@@ -63,7 +63,7 @@ const Login = () => {
                   ? 'border-red-300 dark:border-red-900/50 focus:ring-red-500/20 focus:border-red-500'
                   : ''
               }`}
-              placeholder="you@school.com"
+              placeholder=""
               value={formik.values.email}
               onChange={formik.handleChange}
               onBlur={formik.handleBlur}
@@ -92,7 +92,7 @@ const Login = () => {
                   ? 'border-red-300 dark:border-red-900/50 focus:ring-red-500/20 focus:border-red-500'
                   : ''
               }`}
-              placeholder="••••••••"
+              placeholder=""
               value={formik.values.password}
               onChange={formik.handleChange}
               onBlur={formik.handleBlur}
