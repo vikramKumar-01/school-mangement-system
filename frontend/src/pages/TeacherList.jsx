@@ -1,9 +1,11 @@
 import React, { useEffect, useState } from 'react';
+import { createPortal } from 'react-dom';
 import { useFormik } from 'formik';
 import { teacherService } from '../services/teacher.service';
+import { classService } from '../services/class.service';
 import { teacherSchema } from '../validations/teacher.validation';
 import useAuth from '../hooks/useAuth';
-import { Plus, Edit2, Trash2, Search, X, AlertCircle, Phone, Mail, BookOpen, IndianRupee } from 'lucide-react';
+import { Plus, Edit2, Trash2, Search, X, AlertCircle, Phone, Mail, BookOpen, IndianRupee, User, CheckCircle } from 'lucide-react';
 
 const TeacherList = () => {
   const { user } = useAuth();
@@ -24,6 +26,12 @@ const TeacherList = () => {
   // Modal States
   const [modalOpen, setModalOpen] = useState(false);
   const [editingTeacher, setEditingTeacher] = useState(null);
+
+  // Profile Modal States
+  const [profileOpen, setProfileOpen] = useState(false);
+  const [selectedTeacher, setSelectedTeacher] = useState(null);
+  const [teacherClasses, setTeacherClasses] = useState([]);
+  const [profileLoading, setProfileLoading] = useState(false);
 
   const fetchTeachers = async () => {
     try {
@@ -58,6 +66,21 @@ const TeacherList = () => {
       } catch (err) {
         setError(err?.response?.data?.message || 'Failed to delete teacher');
       }
+    }
+  };
+
+  const viewProfile = async (teacher) => {
+    setSelectedTeacher(teacher);
+    setProfileOpen(true);
+    setProfileLoading(true);
+    try {
+      const res = await classService.getAll({ limit: 100 });
+      const assigned = res.classes.filter(c => c.classTeacher?._id === teacher._id);
+      setTeacherClasses(assigned);
+    } catch (err) {
+      console.error(err);
+    } finally {
+      setProfileLoading(false);
     }
   };
 
@@ -200,7 +223,11 @@ const TeacherList = () => {
           {/* 1. Mobile Cards (< 768px) */}
           <div className="grid gap-4 sm:grid-cols-2 md:hidden">
             {teachers.map((t) => (
-              <div key={t._id} className="glass-card p-5 space-y-4">
+              <div 
+                key={t._id} 
+                className="glass-card p-5 space-y-4 cursor-pointer hover:bg-slate-900/30 transition-colors"
+                onClick={() => viewProfile(t)}
+              >
                 <div>
                   <h3 className="text-lg font-bold text-white leading-tight">{t.name}</h3>
                   <span className="inline-block mt-1.5 px-2.5 py-0.5 rounded-full bg-indigo-500/10 text-indigo-400 text-xs font-semibold uppercase">
@@ -266,7 +293,19 @@ const TeacherList = () => {
                 <tbody className="divide-y divide-slate-800/60 text-sm">
                   {teachers.map((t) => (
                     <tr key={t._id} className="hover:bg-slate-900/20 transition-all">
-                      <td className="px-6 py-4 font-semibold text-white">{t.name}</td>
+                      <td className="px-6 py-4 border-b border-slate-200 dark:border-slate-800">
+                        <div 
+                          className="flex items-center gap-3 cursor-pointer group"
+                          onClick={() => viewProfile(t)}
+                        >
+                          <div className="h-10 w-10 bg-indigo-500/10 text-indigo-400 rounded-full flex items-center justify-center shrink-0">
+                            <User className="h-5 w-5" />
+                          </div>
+                          <div>
+                            <p className="font-semibold text-white group-hover:text-sky-400 transition-colors">{t.name}</p>
+                          </div>
+                        </div>
+                      </td>
                       <td className="px-6 py-4">
                         <span className="px-2.5 py-0.5 rounded-md bg-indigo-500/10 text-indigo-400 text-xs font-semibold">
                           {t.subject || 'Faculty'}
@@ -359,9 +398,9 @@ const TeacherList = () => {
         </>
       )}
 
-      {/* Add / Edit Teacher Modal Drawer */}
-      {modalOpen && (
-        <div className="fixed inset-0 z-50 flex items-end justify-center sm:items-center p-0 sm:p-4">
+      {/* Edit Teacher Modal */}
+      {modalOpen && createPortal(
+        <div className="fixed inset-0 z-[100] flex items-end justify-center sm:items-center p-0 sm:p-4">
           <div className="fixed inset-0 bg-slate-950/80 backdrop-blur-sm" onClick={() => setModalOpen(false)}></div>
           <div className="relative w-full max-w-md rounded-t-3xl sm:rounded-2xl border border-slate-800 bg-slate-900 p-6 shadow-2xl animate-fade-in max-h-[90vh] overflow-y-auto">
             <div className="flex items-center justify-between border-b border-slate-800 pb-4 mb-4">
@@ -504,7 +543,102 @@ const TeacherList = () => {
               </div>
             </form>
           </div>
-        </div>
+        </div>,
+        document.body
+      )}
+
+      {/* Profile Modal */}
+      {profileOpen && selectedTeacher && createPortal(
+        <div className="fixed inset-0 z-[100] flex items-end justify-center sm:items-center p-0 sm:p-4">
+          <div className="fixed inset-0 bg-slate-950/80 backdrop-blur-sm" onClick={() => setProfileOpen(false)}></div>
+          <div className="relative w-full max-w-3xl bg-slate-900 border border-slate-800 rounded-t-3xl sm:rounded-3xl p-6 sm:p-8 shadow-2xl animate-fade-in text-left max-h-[90vh] overflow-y-auto custom-scrollbar">
+            
+            <div className="flex items-start justify-between border-b border-slate-800 pb-6 mb-6">
+              <div className="flex items-center gap-4 sm:gap-5">
+                <div className="h-16 w-16 sm:h-20 sm:w-20 bg-indigo-500/10 border border-indigo-500/20 text-indigo-400 rounded-full flex items-center justify-center shrink-0">
+                  <User className="h-8 w-8 sm:h-10 sm:w-10" />
+                </div>
+                <div>
+                  <h3 className="text-xl sm:text-3xl font-black text-white">{selectedTeacher.name}</h3>
+                  <div className="flex flex-wrap gap-2 sm:gap-3 text-sm mt-2">
+                    <span className="bg-indigo-500/10 text-indigo-400 px-2 sm:px-3 py-1 rounded-full text-xs font-semibold">
+                      {selectedTeacher.subject || 'Faculty'}
+                    </span>
+                  </div>
+                </div>
+              </div>
+
+              <button
+                onClick={() => {
+                  setProfileOpen(false);
+                  setSelectedTeacher(null);
+                }}
+                className="p-2 rounded-xl bg-slate-800/50 text-slate-400 hover:bg-slate-700 hover:text-white cursor-pointer transition-colors shrink-0"
+              >
+                <X className="h-5 w-5" />
+              </button>
+            </div>
+
+            {profileLoading ? (
+              <div className="flex justify-center py-12">
+                <div className="h-10 w-10 animate-spin rounded-full border-4 border-slate-800 border-t-indigo-500"></div>
+              </div>
+            ) : (
+              <div className="grid gap-6 md:grid-cols-2 pb-4">
+                
+                {/* General Info */}
+                <div className="space-y-4">
+                  <h4 className="text-xs sm:text-sm font-bold text-slate-400 uppercase tracking-widest flex items-center gap-2">
+                    <User className="h-4 w-4" /> Personal Details
+                  </h4>
+                  <div className="bg-slate-800/30 p-5 rounded-2xl border border-slate-800/50 space-y-4 text-sm">
+                    <div className="flex justify-between items-center">
+                      <span className="text-slate-500 font-medium">Email</span>
+                      <span className="font-bold text-white text-right"><a href={`mailto:${selectedTeacher.email}`} className="hover:underline">{selectedTeacher.email}</a></span>
+                    </div>
+                    <div className="flex justify-between items-center">
+                      <span className="text-slate-500 font-medium">Phone Number</span>
+                      <span className="font-bold text-white font-mono text-right">{selectedTeacher.phone || '-'}</span>
+                    </div>
+                    {isAdmin && (
+                      <div className="flex justify-between items-center">
+                        <span className="text-slate-500 font-medium">Salary</span>
+                        <span className="font-bold text-emerald-400 font-mono text-right">
+                          {selectedTeacher.salary ? `₹${selectedTeacher.salary.toLocaleString()}` : '-'}
+                        </span>
+                      </div>
+                    )}
+                  </div>
+                </div>
+
+                {/* Assigned Classes */}
+                <div className="space-y-4">
+                  <h4 className="text-xs sm:text-sm font-bold text-slate-400 uppercase tracking-widest flex items-center gap-2">
+                    <BookOpen className="h-4 w-4" /> Assigned Classes
+                  </h4>
+                  <div className="bg-slate-800/30 p-5 rounded-2xl border border-slate-800/50 space-y-4 max-h-56 overflow-y-auto custom-scrollbar">
+                    {teacherClasses.length === 0 ? (
+                      <p className="text-sm text-slate-500 text-center py-6 font-medium">No assigned classes found.</p>
+                    ) : (
+                      teacherClasses.map((cls, i) => (
+                        <div key={i} className="flex justify-between items-center border-b border-slate-800/60 pb-3 last:border-0 last:pb-0">
+                          <div>
+                            <p className="text-sm font-bold text-white">{cls.className}</p>
+                          </div>
+                          <span className="px-2.5 py-1 rounded-md text-[10px] font-bold uppercase tracking-widest border bg-indigo-500/10 text-indigo-400 border-indigo-500/20">
+                            Section {cls.section || '-'}
+                          </span>
+                        </div>
+                      ))
+                    )}
+                  </div>
+                </div>
+
+              </div>
+            )}
+          </div>
+        </div>,
+        document.body
       )}
     </div>
   );

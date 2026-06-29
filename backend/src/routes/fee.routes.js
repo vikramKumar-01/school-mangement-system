@@ -16,10 +16,10 @@ router.use(verifyJWT);
 
 router.route("/")
     .post(AuthorizeRole("admin"), createFee)
-    .get(AuthorizeRole("admin", "student"), getAllFees);
+    .get(AuthorizeRole("admin", "student", "teacher"), getAllFees);
 
 router.route("/:id")
-    .get(AuthorizeRole("admin", "student"), getFeeById)
+    .get(AuthorizeRole("admin", "student", "teacher"), getFeeById)
     .put(AuthorizeRole("admin"), updateFee)
     .delete(AuthorizeRole("admin"), deleteFee);
 
