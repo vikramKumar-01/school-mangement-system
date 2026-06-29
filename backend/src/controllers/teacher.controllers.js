@@ -65,7 +65,8 @@ const registerTeacher = asyncHandler(async (req, res) => {
         userId: generatedUserId,
         email: email.trim().toLowerCase(),
         password: generatedPassword,
-        role: "teacher"
+        role: "teacher",
+        mustChangePassword: true
     });
 
     const teacher = await Teacher.create({

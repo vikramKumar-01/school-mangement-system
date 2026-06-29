@@ -215,6 +215,7 @@ const changePassword = asyncHandler(async (req, res) => {
     }
 
     user.password = newPassword;
+    user.mustChangePassword = false;
     await user.save({ validateBeforeSave: false });
 
     return res.status(200).json(

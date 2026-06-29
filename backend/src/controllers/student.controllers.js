@@ -44,7 +44,8 @@ const registerStudent = asyncHandler(async (req, res) => {
         fullName: name.trim(),
         userId: generatedUserId,
         password: generatedPassword,
-        role: "student"
+        role: "student",
+        mustChangePassword: true
     });
 
     const student = await Student.create({

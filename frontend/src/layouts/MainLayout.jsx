@@ -20,7 +20,8 @@ import {
   ChevronLeft,
   ChevronRight,
   MessageSquare,
-  FileText
+  FileText,
+  AlertTriangle
 } from 'lucide-react';
 
 const MainLayout = () => {
@@ -247,6 +248,22 @@ const MainLayout = () => {
             </div>
           </div>
         </header>
+
+        {/* Password Change Warning Banner */}
+        {user?.mustChangePassword && (
+          <div className="flex items-center gap-3 bg-amber-500/10 border-b border-amber-500/30 px-6 py-3 shrink-0">
+            <AlertTriangle className="h-5 w-5 text-amber-400 shrink-0" />
+            <p className="text-sm text-amber-300 flex-1">
+              <span className="font-bold">Security Notice:</span> You are using a system-generated password. Please change it immediately to secure your account.
+            </p>
+            <Link
+              to="/dashboard/profile"
+              className="shrink-0 rounded-lg bg-amber-500 hover:bg-amber-400 text-slate-900 text-xs font-bold px-3 py-1.5 transition-colors"
+            >
+              Change Password
+            </Link>
+          </div>
+        )}
 
         {/* Content Outlet */}
         <main className="flex-1 overflow-y-auto bg-slate-50 dark:bg-slate-950 p-4 sm:p-6 lg:p-8 transition-colors duration-300">

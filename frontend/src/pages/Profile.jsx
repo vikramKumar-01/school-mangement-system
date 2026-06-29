@@ -2,7 +2,7 @@ import React, { useState } from 'react';
 import { useFormik } from 'formik';
 import useAuth from '../hooks/useAuth';
 import { changePasswordSchema, updateProfileSchema } from '../validations/profile.validation';
-import { AlertCircle, Camera, CheckCircle, ShieldCheck, User, Lock, Mail } from 'lucide-react';
+import { AlertCircle, Camera, CheckCircle, ShieldCheck, User, Lock, Mail, Fingerprint, Eye, EyeOff } from 'lucide-react';
 
 const Profile = () => {
   const { user, changePassword, updateProfile } = useAuth();
@@ -14,6 +14,8 @@ const Profile = () => {
   
   const [imagePreview, setImagePreview] = useState(user?.profileImage || null);
   const [selectedFile, setSelectedFile] = useState(null);
+  const [showNewPassword, setShowNewPassword] = useState(false);
+  const [showConfirmPassword, setShowConfirmPassword] = useState(false);
 
   // Form for Profile Detail Updates
   const profileForm = useFormik({
@@ -117,7 +119,11 @@ const Profile = () => {
           <div className="text-left space-y-3 text-sm text-slate-350 border-t border-slate-850 pt-4">
             <div className="flex items-center gap-3">
               <Mail className="h-4 w-4 text-slate-500 shrink-0" />
-              <span className="truncate">{user.email}</span>
+              <span className="truncate">{user.email || 'No email provided'}</span>
+            </div>
+            <div className="flex items-center gap-3">
+              <Fingerprint className="h-4 w-4 text-slate-500 shrink-0" />
+              <span className="truncate font-mono">{user.userId || 'N/A'}</span>
             </div>
             <div className="flex items-center gap-3">
               <span className="text-xs text-slate-500 font-semibold uppercase tracking-wider shrink-0">Status:</span>
@@ -239,18 +245,27 @@ const Profile = () => {
                   <label className="text-xs font-semibold text-slate-350" htmlFor="newPassword">
                     New Password
                   </label>
-                  <input
-                    id="newPassword"
-                    name="newPassword"
-                    type="password"
-                    className={`w-full glass-input py-2.5 ${
-                      passwordForm.touched.newPassword && passwordForm.errors.newPassword ? 'border-red-500/50' : ''
-                    }`}
-                    placeholder="••••••••"
-                    value={passwordForm.values.newPassword}
-                    onChange={passwordForm.handleChange}
-                    onBlur={passwordForm.handleBlur}
-                  />
+                  <div className="relative">
+                    <input
+                      id="newPassword"
+                      name="newPassword"
+                      type={showNewPassword ? 'text' : 'password'}
+                      className={`w-full glass-input py-2.5 pr-10 ${
+                        passwordForm.touched.newPassword && passwordForm.errors.newPassword ? 'border-red-500/50' : ''
+                      }`}
+                      placeholder="••••••••"
+                      value={passwordForm.values.newPassword}
+                      onChange={passwordForm.handleChange}
+                      onBlur={passwordForm.handleBlur}
+                    />
+                    <button
+                      type="button"
+                      onClick={() => setShowNewPassword(!showNewPassword)}
+                      className="absolute inset-y-0 right-0 flex items-center pr-3 text-slate-500 hover:text-slate-300"
+                    >
+                      {showNewPassword ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
+                    </button>
+                  </div>
                   {passwordForm.touched.newPassword && passwordForm.errors.newPassword && (
                     <p className="text-xs text-red-400 mt-1">{passwordForm.errors.newPassword}</p>
                   )}
@@ -260,18 +275,27 @@ const Profile = () => {
                   <label className="text-xs font-semibold text-slate-350" htmlFor="confirmNewPassword">
                     Confirm New Password
                   </label>
-                  <input
-                    id="confirmNewPassword"
-                    name="confirmNewPassword"
-                    type="password"
-                    className={`w-full glass-input py-2.5 ${
-                      passwordForm.touched.confirmNewPassword && passwordForm.errors.confirmNewPassword ? 'border-red-500/50' : ''
-                    }`}
-                    placeholder="••••••••"
-                    value={passwordForm.values.confirmNewPassword}
-                    onChange={passwordForm.handleChange}
-                    onBlur={passwordForm.handleBlur}
-                  />
+                  <div className="relative">
+                    <input
+                      id="confirmNewPassword"
+                      name="confirmNewPassword"
+                      type={showConfirmPassword ? 'text' : 'password'}
+                      className={`w-full glass-input py-2.5 pr-10 ${
+                        passwordForm.touched.confirmNewPassword && passwordForm.errors.confirmNewPassword ? 'border-red-500/50' : ''
+                      }`}
+                      placeholder="••••••••"
+                      value={passwordForm.values.confirmNewPassword}
+                      onChange={passwordForm.handleChange}
+                      onBlur={passwordForm.handleBlur}
+                    />
+                    <button
+                      type="button"
+                      onClick={() => setShowConfirmPassword(!showConfirmPassword)}
+                      className="absolute inset-y-0 right-0 flex items-center pr-3 text-slate-500 hover:text-slate-300"
+                    >
+                      {showConfirmPassword ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
+                    </button>
+                  </div>
                   {passwordForm.touched.confirmNewPassword && passwordForm.errors.confirmNewPassword && (
                     <p className="text-xs text-red-400 mt-1">{passwordForm.errors.confirmNewPassword}</p>
                   )}
