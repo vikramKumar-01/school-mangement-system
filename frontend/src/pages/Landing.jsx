@@ -227,12 +227,6 @@ const Landing = () => {
                 >
                   Member Login
                 </Link>
-                <Link 
-                  to="/register" 
-                  className="px-4 py-2.5 rounded-xl bg-blue-600 text-sm font-bold text-white shadow-lg shadow-blue-500/10 hover:bg-blue-700 transition-all active:scale-95"
-                >
-                  Get Started
-                </Link>
               </>
             )}
           </div>
@@ -322,16 +316,9 @@ const Landing = () => {
                     <Link 
                       to="/login" 
                       onClick={() => setMobileMenuOpen(false)}
-                      className="flex w-full items-center justify-center rounded-xl border border-slate-200 dark:border-slate-800 py-3 text-sm font-bold text-slate-700 dark:text-slate-300 hover:bg-slate-50 dark:hover:bg-slate-800 transition-all min-h-[44px]"
-                    >
-                      Member Login
-                    </Link>
-                    <Link 
-                      to="/register" 
-                      onClick={() => setMobileMenuOpen(false)}
                       className="flex w-full items-center justify-center rounded-xl bg-blue-600 py-3 text-sm font-bold text-white hover:bg-blue-700 transition-all min-h-[44px]"
                     >
-                      Get Started
+                      Member Login
                     </Link>
                   </>
                 )}
@@ -389,17 +376,11 @@ const Landing = () => {
                 ) : (
                   <>
                     <Link 
-                      to="/register" 
+                      to="/login" 
                       className="inline-flex items-center justify-center gap-2 rounded-xl bg-blue-600 hover:bg-blue-700 px-6 py-3 text-sm font-semibold text-white shadow-xl shadow-blue-500/15 hover:shadow-blue-500/25 transition-all hover:-translate-y-0.5 active:translate-y-0 min-h-[44px]"
                     >
-                      Get Started Now
-                      <ArrowRight className="h-4.5 w-4.5" />
-                    </Link>
-                    <Link 
-                      to="/login" 
-                      className="inline-flex items-center justify-center gap-2 rounded-xl border border-slate-200 dark:border-slate-800 hover:bg-slate-50 dark:hover:bg-slate-900 px-6 py-3 text-sm font-semibold text-slate-700 dark:text-slate-300 transition-all active:scale-[0.98] min-h-[44px]"
-                    >
                       Member Login
+                      <ArrowRight className="h-4.5 w-4.5" />
                     </Link>
                   </>
                 )}

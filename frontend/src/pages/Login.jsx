@@ -123,12 +123,6 @@ const Login = () => {
         </button>
       </form>
 
-      <div className="text-center text-sm text-slate-500 dark:text-slate-400 mt-6 font-medium transition-colors">
-        Don't have an account?{' '}
-        <Link to="/register" className="font-bold text-blue-600 dark:text-blue-400 hover:text-blue-700 dark:hover:text-blue-300 transition-colors">
-          Create an Account
-        </Link>
-      </div>
     </div>
   );
 };

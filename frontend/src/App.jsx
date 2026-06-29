@@ -9,7 +9,6 @@ import RoleProtectedRoute from './components/RoleProtectedRoute';
 // Pages
 import Landing from './pages/Landing';
 import Login from './pages/Login';
-import Register from './pages/Register';
 import Dashboard from './pages/Dashboard';
 import ClassList from './pages/ClassList';
 import StudentList from './pages/StudentList';
@@ -21,6 +20,7 @@ import ContactMessages from './pages/ContactMessages';
 import SchoolSettings from './pages/SchoolSettings';
 import HolidayManagement from './pages/HolidayManagement';
 import AdminTeacherAttendance from './pages/AdminTeacherAttendance';
+import TeacherMyAttendance from './pages/TeacherMyAttendance';
 
 function App() {
   return (
@@ -34,7 +34,6 @@ function App() {
           {/* Auth Routes */}
           <Route element={<AuthLayout />}>
             <Route path="/login" element={<Login />} />
-            <Route path="/register" element={<Register />} />
           </Route>
 
           {/* Core Protected App Routes */}
@@ -82,6 +81,15 @@ function App() {
               element={
                 <RoleProtectedRoute allowedRoles={['admin', 'teacher', 'student', 'parent']}>
                   <AttendanceList />
+                </RoleProtectedRoute>
+              } 
+            />
+
+            <Route 
+              path="my-attendance" 
+              element={
+                <RoleProtectedRoute allowedRoles={['teacher']}>
+                  <TeacherMyAttendance />
                 </RoleProtectedRoute>
               } 
             />
