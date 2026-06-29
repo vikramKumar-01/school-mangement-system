@@ -106,6 +106,7 @@ const TeacherList = () => {
   const formik = useFormik({
     initialValues: {
       name: '',
+      gender: '',
       subject: '',
       email: '',
       phone: '',
@@ -124,13 +125,17 @@ const TeacherList = () => {
           await teacherService.update(editingTeacher._id, payload);
           setSuccessMsg('Teacher updated successfully');
         } else {
-          await teacherService.create(payload);
-          setSuccessMsg('Teacher registered successfully');
+          const res = await teacherService.create(payload);
+          if (res?.credentials) {
+            setSuccessMsg(`Teacher created! UserID: ${res.credentials.userId} | Password: ${res.credentials.password}`);
+          } else {
+            setSuccessMsg('Teacher registered successfully');
+          }
         }
 
         setModalOpen(false);
         fetchTeachers();
-        setTimeout(() => setSuccessMsg(''), 3000);
+        setTimeout(() => setSuccessMsg(''), 15000);
       } catch (err) {
         setError(err?.response?.data?.message || 'Failed to save teacher');
       }
@@ -233,6 +238,7 @@ const TeacherList = () => {
                   <span className="inline-block mt-1.5 px-2.5 py-0.5 rounded-full bg-indigo-500/10 text-indigo-400 text-xs font-semibold uppercase">
                     {t.subject || 'Faculty'}
                   </span>
+                  <div className="mt-2 text-xs font-mono text-indigo-300">ID: {t.user?.userId || 'N/A'}</div>
                 </div>
 
                 <div className="space-y-2 text-xs text-slate-400 border-t border-slate-850 pt-3">
@@ -283,6 +289,7 @@ const TeacherList = () => {
                 <thead>
                   <tr className="border-b border-slate-800 bg-slate-900/40 text-xs font-semibold uppercase tracking-wider text-slate-400">
                     <th className="px-6 py-4">Name</th>
+                    <th className="px-6 py-4">User ID</th>
                     <th className="px-6 py-4">Subject</th>
                     <th className="px-6 py-4">Email</th>
                     <th className="px-6 py-4">Phone</th>
@@ -306,6 +313,7 @@ const TeacherList = () => {
                           </div>
                         </div>
                       </td>
+                      <td className="px-6 py-4 font-mono text-indigo-400 text-xs bg-indigo-500/5">{t.user?.userId || '—'}</td>
                       <td className="px-6 py-4">
                         <span className="px-2.5 py-0.5 rounded-md bg-indigo-500/10 text-indigo-400 text-xs font-semibold">
                           {t.subject || 'Faculty'}
@@ -457,6 +465,31 @@ const TeacherList = () => {
                 />
                 {formik.touched.subject && formik.errors.subject && (
                   <p className="text-xs text-red-400 mt-1">{formik.errors.subject}</p>
+                )}
+              </div>
+
+              {/* Gender */}
+              <div className="space-y-1 text-left">
+                <label className="text-xs font-semibold text-slate-350" htmlFor="gender">
+                  Gender *
+                </label>
+                <select
+                  id="gender"
+                  name="gender"
+                  disabled={!!editingTeacher}
+                  className={`w-full glass-input py-2.5 disabled:opacity-50 disabled:cursor-not-allowed ${
+                    formik.touched.gender && formik.errors.gender ? 'border-red-500/50' : ''
+                  }`}
+                  value={formik.values.gender}
+                  onChange={formik.handleChange}
+                  onBlur={formik.handleBlur}
+                >
+                  <option value="" className="bg-slate-900">Select Gender</option>
+                  <option value="Male" className="bg-slate-900 text-white">Male</option>
+                  <option value="Female" className="bg-slate-900 text-white">Female</option>
+                </select>
+                {formik.touched.gender && formik.errors.gender && (
+                  <p className="text-xs text-red-400 mt-1">{formik.errors.gender}</p>
                 )}
               </div>
 

@@ -10,6 +10,11 @@ const studentSchema = new mongoose.Schema({
         type: String,
         required: true,
     },
+    gender: {
+        type: String,
+        enum: ['Male', 'Female'],
+        required: true,
+    },
     rollNumber:{
         type : Number,
         required : true,
@@ -27,6 +32,10 @@ const studentSchema = new mongoose.Schema({
     admissionDate:{
         type:Date,
         default:Date.now
+    },
+    user: {
+        type: mongoose.Schema.Types.ObjectId,
+        ref: 'User'
     }
 },{timestamps: true})
 

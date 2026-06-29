@@ -13,7 +13,7 @@ const Login = () => {
 
   const formik = useFormik({
     initialValues: {
-      email: '',
+      userId: '',
       password: '',
     },
     validationSchema: loginSchema,
@@ -21,7 +21,7 @@ const Login = () => {
       setError('');
       setIsSubmittingLocal(true);
       try {
-        await login(values.email, values.password);
+        await login(values.userId, values.password);
       } catch (err) {
         setError(err);
       } finally {
@@ -45,32 +45,32 @@ const Login = () => {
       )}
 
       <form onSubmit={formik.handleSubmit} className="space-y-4">
-        {/* Email Field */}
+        {/* User ID / Email Field */}
         <div className="space-y-1 text-left">
-          <label className="text-xs font-bold text-slate-700 dark:text-slate-350 uppercase tracking-wide transition-colors" htmlFor="email">
-            Email Address
+          <label className="text-xs font-bold text-slate-700 dark:text-slate-350 uppercase tracking-wide transition-colors" htmlFor="userId">
+            User ID or Email
           </label>
           <div className="relative">
             <div className="pointer-events-none absolute inset-y-0 left-0 flex items-center pl-3">
               <Mail className="h-5 w-5 text-slate-400 dark:text-slate-500" />
             </div>
             <input
-              id="email"
-              name="email"
-              type="email"
+              id="userId"
+              name="userId"
+              type="text"
               className={`w-full pl-10 bg-white dark:bg-slate-950 border border-slate-200 dark:border-slate-800 rounded-xl px-4 py-2.5 text-slate-800 dark:text-slate-100 placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 transition-all text-sm ${
-                formik.touched.email && formik.errors.email
+                formik.touched.userId && formik.errors.userId
                   ? 'border-red-300 dark:border-red-900/50 focus:ring-red-500/20 focus:border-red-500'
                   : ''
               }`}
-              placeholder=""
-              value={formik.values.email}
+              placeholder="e.g. 2026101001 or example@school.com"
+              value={formik.values.userId}
               onChange={formik.handleChange}
               onBlur={formik.handleBlur}
             />
           </div>
-          {formik.touched.email && formik.errors.email && (
-            <p className="text-xs text-red-500 mt-1 font-medium">{formik.errors.email}</p>
+          {formik.touched.userId && formik.errors.userId && (
+            <p className="text-xs text-red-500 mt-1 font-medium">{formik.errors.userId}</p>
           )}
         </div>
 

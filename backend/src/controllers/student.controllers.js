@@ -2,14 +2,19 @@ import { asyncHandler } from "../utils/asyncHandler.js";
 import { ApiError } from "../utils/ApiError.js";
 import { ApiResponse } from "../utils/ApiResponse.js";
 import { Student } from "../models/student.models.js";
+import { User } from "../models/user.models.js";
 
 
 const registerStudent = asyncHandler(async (req, res) => {
-    const { name, class: className, rollNumber, fatherName, phone, address, admissionDate } = req.body || {};
+    const { name, class: className, rollNumber, gender, fatherName, phone, address, admissionDate } = req.body || {};
 
     // check required fields
-    if (!name?.trim() || !className?.trim() || !rollNumber) {
-        throw new ApiError(400, "Name, class, and roll number are required");
+    if (!name?.trim() || !className?.trim() || !rollNumber || !gender) {
+        throw new ApiError(400, "Name, class, roll number, and gender are required");
+    }
+
+    if (!['Male', 'Female'].includes(gender)) {
+        throw new ApiError(400, "Gender must be Male or Female");
     }
 
     const rollNum = Number(rollNumber);
@@ -22,14 +27,36 @@ const registerStudent = asyncHandler(async (req, res) => {
         throw new ApiError(409, "Student with this roll number already exists");
     }
 
+    // Generate User ID and Password
+    const year = new Date().getFullYear();
+    const genderCode = gender === 'Male' ? 101 : 102;
+    const uniqueNum = rollNum.toString().padStart(3, '0');
+    const generatedUserId = `${year}${genderCode}${uniqueNum}`;
+
+    const firstName = name.trim().split(' ')[0];
+    const first4 = firstName.substring(0, 4);
+    const capitalizedFirst4 = first4.charAt(0).toUpperCase() + first4.slice(1).toLowerCase();
+    const last4 = generatedUserId.slice(-4);
+    const generatedPassword = `${capitalizedFirst4}@${last4}`;
+
+    // Create the User first
+    const newUser = await User.create({
+        fullName: name.trim(),
+        userId: generatedUserId,
+        password: generatedPassword,
+        role: "student"
+    });
+
     const student = await Student.create({
         name: name.trim(),
         class: className.trim(),
         rollNumber: rollNum,
+        gender: gender,
         fatherName: fatherName?.trim() || undefined,
         phone: phone?.trim() || undefined,
         address: address?.trim() || undefined,
-        admissionDate: admissionDate ? new Date(admissionDate) : undefined
+        admissionDate: admissionDate ? new Date(admissionDate) : undefined,
+        user: newUser._id
     });
 
     const createdStudent = await Student.findById(student._id);
@@ -38,7 +65,13 @@ const registerStudent = asyncHandler(async (req, res) => {
     }
 
     return res.status(201).json(
-        new ApiResponse(200, createdStudent, "Student Registered Successfully")
+        new ApiResponse(201, {
+            student: createdStudent,
+            credentials: {
+                userId: generatedUserId,
+                password: generatedPassword
+            }
+        }, "Student Registered Successfully")
     );
 });
 
@@ -79,6 +112,7 @@ const getAllStudents = asyncHandler(async (req, res) => {
     const parsedLimit = Number(limit);
 
     const students = await Student.find(filter)
+        .populate('user', 'userId')
         .skip(skip)
         .limit(parsedLimit)
         .sort({ createdAt: -1 });

@@ -2,14 +2,19 @@ import { asyncHandler } from "../utils/asyncHandler.js";
 import { ApiError } from "../utils/ApiError.js";
 import { ApiResponse } from "../utils/ApiResponse.js";
 import { Teacher } from "../models/teacher.models.js";
+import { User } from "../models/user.models.js";
 
 
 const registerTeacher = asyncHandler(async (req, res) => {
-    const { name, subject, phone, email, salary } = req.body || {};
+    const { name, subject, phone, email, salary, gender } = req.body || {};
 
     
     if (!name?.trim()) {
         throw new ApiError(400, "Name is required");
+    }
+
+    if (!gender || !['Male', 'Female'].includes(gender)) {
+        throw new ApiError(400, "Gender must be Male or Female");
     }
 
     if (!email?.trim()) {
@@ -40,12 +45,37 @@ const registerTeacher = asyncHandler(async (req, res) => {
         throw new ApiError(400, "Salary must be a positive number");
     }
 
+    // Generate User ID and Password
+    const year = new Date().getFullYear();
+    const genderCode = gender === 'Male' ? 101 : 102;
+    // For unique number, use total teachers + 1
+    const count = await Teacher.countDocuments();
+    const uniqueNum = (count + 1).toString().padStart(3, '0');
+    const generatedUserId = `${year}${genderCode}${uniqueNum}`;
+
+    const firstName = name.trim().split(' ')[0];
+    const first4 = firstName.substring(0, 4);
+    const capitalizedFirst4 = first4.charAt(0).toUpperCase() + first4.slice(1).toLowerCase();
+    const last4 = generatedUserId.slice(-4);
+    const generatedPassword = `${capitalizedFirst4}@${last4}`;
+
+    // Create the User first
+    const newUser = await User.create({
+        fullName: name.trim(),
+        userId: generatedUserId,
+        email: email.trim().toLowerCase(),
+        password: generatedPassword,
+        role: "teacher"
+    });
+
     const teacher = await Teacher.create({
         name: name.trim(),
         subject: subject?.trim() || undefined,
+        gender: gender,
         phone: phone?.trim() || undefined,
         email: email.trim().toLowerCase(),
-        salary: parsedSalary
+        salary: parsedSalary,
+        user: newUser._id
     });
 
     const createdTeacher = await Teacher.findById(teacher._id);
@@ -54,7 +84,13 @@ const registerTeacher = asyncHandler(async (req, res) => {
     }
 
     return res.status(201).json(
-        new ApiResponse(200, createdTeacher, "Teacher Registered Successfully")
+        new ApiResponse(201, {
+            teacher: createdTeacher,
+            credentials: {
+                userId: generatedUserId,
+                password: generatedPassword
+            }
+        }, "Teacher Registered Successfully")
     );
 });
 
@@ -90,6 +126,7 @@ const getAllTeachers = asyncHandler(async (req, res) => {
     const parsedLimit = Number(limit);
 
     const teachers = await Teacher.find(filter)
+        .populate('user', 'userId')
         .skip(skip)
         .limit(parsedLimit)
         .sort({ createdAt: -1 });

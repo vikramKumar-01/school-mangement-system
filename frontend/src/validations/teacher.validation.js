@@ -8,6 +8,9 @@ export const teacherSchema = Yup.object().shape({
   subject: Yup.string()
     .required('Subject specialization is required')
     .trim(),
+  gender: Yup.string()
+    .required('Gender is required')
+    .oneOf(['Male', 'Female'], 'Gender must be Male or Female'),
   email: Yup.string()
     .email('Invalid email address')
     .required('Email is required')

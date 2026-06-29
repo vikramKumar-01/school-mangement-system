@@ -8,6 +8,11 @@ const teacherSchema = new mongoose.Schema({
     subject:{
         type: String,
     },
+    gender: {
+        type: String,
+        enum: ['Male', 'Female'],
+        required: true,
+    },
     phone:{
         type: String,
         unique: true,
@@ -20,6 +25,10 @@ const teacherSchema = new mongoose.Schema({
     },
     salary:{
         type: Number
+    },
+    user: {
+        type: mongoose.Schema.Types.ObjectId,
+        ref: 'User'
     }
 },{timestamps: true})
 

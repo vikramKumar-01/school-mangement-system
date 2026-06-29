@@ -12,6 +12,9 @@ export const studentSchema = Yup.object().shape({
     .required('Roll Number is required')
     .positive('Roll number must be a positive number')
     .integer('Roll number must be an integer'),
+  gender: Yup.string()
+    .required('Gender is required')
+    .oneOf(['Male', 'Female'], 'Gender must be Male or Female'),
   fatherName: Yup.string()
     .trim(),
   phone: Yup.string()

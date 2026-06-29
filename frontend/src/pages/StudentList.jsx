@@ -135,6 +135,7 @@ const StudentList = () => {
   const formik = useFormik({
     initialValues: {
       name: '',
+      gender: '',
       class: '',
       rollNumber: '',
       fatherName: '',
@@ -153,13 +154,19 @@ const StudentList = () => {
           await studentService.update(editingStudent._id, payload);
           setSuccessMsg('Student record updated');
         } else {
-          await studentService.create(payload);
-          setSuccessMsg('Student record created');
+          const res = await studentService.create(payload);
+          // If the backend returns credentials, show them in success message
+          if (res?.credentials) {
+            setSuccessMsg(`Student created! UserID: ${res.credentials.userId} | Password: ${res.credentials.password}`);
+          } else {
+            setSuccessMsg('Student record created');
+          }
         }
 
         setModalOpen(false);
         fetchStudents();
-        setTimeout(() => setSuccessMsg(''), 3000);
+        // Keep the message longer so they can read the credentials
+        setTimeout(() => setSuccessMsg(''), 15000);
       } catch (err) {
         setError(err?.response?.data?.message || 'Failed to save student');
       }
@@ -271,7 +278,10 @@ const StudentList = () => {
                       {std.class}
                     </span>
                   </div>
-                  <span className="text-xs font-mono text-slate-500">Roll: {std.rollNumber}</span>
+                  <div className="text-right">
+                    <span className="text-xs font-mono text-slate-500 block">Roll: {std.rollNumber}</span>
+                    <span className="text-[10px] font-mono text-sky-500 bg-sky-500/10 px-2 py-0.5 rounded-full mt-1 inline-block">ID: {std.user?.userId || 'N/A'}</span>
+                  </div>
                 </div>
 
                 <div className="space-y-2 text-xs text-slate-400 border-t border-slate-850 pt-3">
@@ -332,6 +342,7 @@ const StudentList = () => {
                 <thead>
                   <tr className="border-b border-slate-800 bg-slate-900/40 text-xs font-semibold uppercase tracking-wider text-slate-400">
                     <th className="px-6 py-4">Name</th>
+                    <th className="px-6 py-4">User ID</th>
                     <th className="px-6 py-4">Class</th>
                     <th className="px-6 py-4">Roll Number</th>
                     <th className="px-6 py-4">Father's Name</th>
@@ -351,6 +362,7 @@ const StudentList = () => {
                           {std.name}
                         </button>
                       </td>
+                      <td className="px-6 py-4 font-mono text-sky-400 text-xs bg-sky-500/5">{std.user?.userId || '—'}</td>
                       <td className="p-4 text-sm text-slate-400">
                         <span className="px-2 py-0.5 rounded-md bg-sky-500/10 text-sky-400 text-xs font-semibold uppercase">
                           {std.class}
@@ -506,6 +518,28 @@ const StudentList = () => {
                 </div>
 
                 <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                  <div className="space-y-1">
+                    <label className="text-[10px] font-bold text-slate-450 uppercase tracking-wider">
+                      Gender *
+                    </label>
+                    <select
+                      id="gender"
+                      name="gender"
+                      disabled={!!editingStudent}
+                      className={`w-full glass-input py-2.5 disabled:opacity-50 disabled:cursor-not-allowed ${formik.touched.gender && formik.errors.gender ? 'border-red-500/50' : ''
+                        }`}
+                      value={formik.values.gender}
+                      onChange={formik.handleChange}
+                      onBlur={formik.handleBlur}
+                    >
+                      <option value="" className="bg-slate-900">Select Gender</option>
+                      <option value="Male" className="bg-slate-900 text-white">Male</option>
+                      <option value="Female" className="bg-slate-900 text-white">Female</option>
+                    </select>
+                    {formik.touched.gender && formik.errors.gender && (
+                      <p className="text-[10px] text-red-400 mt-1">{formik.errors.gender}</p>
+                    )}
+                  </div>
                   <div className="space-y-1">
                     <label className="text-[10px] font-bold text-slate-450 uppercase tracking-wider">
                       Class Section *
