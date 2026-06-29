@@ -1,10 +1,14 @@
 import React, { useEffect, useState } from 'react';
+import { createPortal } from 'react-dom';
 import { useFormik } from 'formik';
 import { studentService } from '../services/student.service';
 import { classService } from '../services/class.service';
 import { studentSchema } from '../validations/student.validation';
 import useAuth from '../hooks/useAuth';
-import { Plus, Edit2, Trash2, Search, X, AlertCircle, Phone, Home, Calendar, User } from 'lucide-react';
+import { Plus, Edit2, Trash2, Search, X, AlertCircle, Phone, Home, Calendar, User, Eye, FileText, CheckCircle, IndianRupee, CalendarCheck } from 'lucide-react';
+import { marksService } from '../services/marks.service';
+import { feeService } from '../services/fee.service';
+import { attendanceService } from '../services/attendance.service';
 
 const StudentList = () => {
   const { user } = useAuth();
@@ -24,9 +28,16 @@ const StudentList = () => {
   const [totalPages, setTotalPages] = useState(1);
   const [totalStudents, setTotalStudents] = useState(0);
 
-  // Modal States
   const [modalOpen, setModalOpen] = useState(false);
   const [editingStudent, setEditingStudent] = useState(null);
+
+  // Profile Modal States
+  const [profileOpen, setProfileOpen] = useState(false);
+  const [selectedStudent, setSelectedStudent] = useState(null);
+  const [studentMarks, setStudentMarks] = useState([]);
+  const [studentFees, setStudentFees] = useState([]);
+  const [studentAttendance, setStudentAttendance] = useState([]);
+  const [profileLoading, setProfileLoading] = useState(false);
 
   const fetchStudents = async () => {
     try {
@@ -74,6 +85,29 @@ const StudentList = () => {
       } catch (err) {
         setError(err?.response?.data?.message || 'Failed to delete student');
       }
+    }
+  };
+
+  const viewProfile = async (student) => {
+    setSelectedStudent(student);
+    setProfileOpen(true);
+    setProfileLoading(true);
+    setStudentMarks([]);
+    setStudentFees([]);
+    setStudentAttendance([]);
+    try {
+      const [marksData, feeData, attendanceData] = await Promise.all([
+        marksService.getAll({ studentId: student._id }).catch(() => []),
+        feeService.getAll({ studentId: student._id }).catch(() => null),
+        attendanceService.getAll({ studentId: student._id }).catch(() => null)
+      ]);
+      setStudentMarks(marksData || []);
+      setStudentFees(feeData?.fees || feeData || []);
+      setStudentAttendance(attendanceData?.attendance || attendanceData || []);
+    } catch (err) {
+      console.error(err);
+    } finally {
+      setProfileLoading(false);
     }
   };
 
@@ -226,7 +260,13 @@ const StudentList = () => {
               <div key={std._id} className="glass-card p-5 space-y-4">
                 <div className="flex items-start justify-between">
                   <div>
-                    <h3 className="text-lg font-bold text-white leading-tight">{std.name}</h3>
+                    <button 
+                      onClick={() => viewProfile(std)}
+                      className="text-lg font-bold text-sky-400 hover:text-sky-300 hover:underline leading-tight text-left"
+                    >
+                      {std.name}
+                    </button>
+                    <br />
                     <span className="inline-block mt-1.5 px-2.5 py-0.5 rounded-full bg-sky-500/10 text-sky-400 text-xs font-semibold uppercase">
                       {std.class}
                     </span>
@@ -302,9 +342,16 @@ const StudentList = () => {
                 </thead>
                 <tbody className="divide-y divide-slate-800/60 text-sm">
                   {students.map((std) => (
-                    <tr key={std._id} className="hover:bg-slate-900/20 transition-all">
-                      <td className="px-6 py-4 font-semibold text-white">{std.name}</td>
-                      <td className="px-6 py-4">
+                    <tr key={std._id} className="hover:bg-slate-800/40 transition-colors">
+                      <td className="p-4 text-sm font-medium">
+                        <button 
+                          onClick={() => viewProfile(std)}
+                          className="text-sky-400 hover:text-sky-300 hover:underline text-left font-bold"
+                        >
+                          {std.name}
+                        </button>
+                      </td>
+                      <td className="p-4 text-sm text-slate-400">
                         <span className="px-2 py-0.5 rounded-md bg-sky-500/10 text-sky-400 text-xs font-semibold uppercase">
                           {std.class}
                         </span>
@@ -395,190 +442,334 @@ const StudentList = () => {
         </>
       )}
 
-      {/* Add / Edit Student Drawer Modal */}
-      {modalOpen && (
-        <div className="fixed inset-0 z-50 flex items-end justify-center sm:items-center p-0 sm:p-4">
+      {/* Edit Student Modal */}
+      {modalOpen && createPortal(
+        <div className="fixed inset-0 z-[100] flex items-end justify-center sm:items-center p-0 sm:p-4">
           <div className="fixed inset-0 bg-slate-950/80 backdrop-blur-sm" onClick={() => setModalOpen(false)}></div>
-          <div className="relative w-full max-w-lg rounded-t-3xl sm:rounded-2xl border border-slate-800 bg-slate-900 p-6 shadow-2xl animate-fade-in max-h-[90vh] overflow-y-auto">
-            <div className="flex items-center justify-between border-b border-slate-800 pb-4 mb-4">
-              <h3 className="text-lg font-bold text-white">
-                {editingStudent ? 'Edit Student Profile' : 'Register Student'}
+          <div className="relative w-full max-w-lg bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-t-3xl sm:rounded-2xl p-6 shadow-2xl animate-fade-in text-left max-h-[90vh] overflow-y-auto">
+            
+            <div className="flex items-center justify-between border-b border-slate-200 dark:border-slate-800 pb-4 mb-4">
+              <h3 className="text-xl font-black text-slate-950 dark:text-white">
+                {editingStudent ? 'Edit Student' : 'Add New Student'}
               </h3>
               <button
                 onClick={() => setModalOpen(false)}
-                className="rounded-lg p-1 text-slate-400 hover:bg-slate-800 hover:text-white"
+                className="rounded-lg p-2 text-slate-500 hover:bg-slate-100 dark:hover:bg-slate-800 transition-colors"
               >
                 <X className="h-5 w-5" />
               </button>
             </div>
 
             <form onSubmit={formik.handleSubmit} className="space-y-4">
-              <div className="grid gap-4 sm:grid-cols-2">
-                {/* Name */}
-                <div className="space-y-1 text-left">
-                  <label className="text-xs font-semibold text-slate-350" htmlFor="name">
-                    Student Name *
-                  </label>
-                  <input
-                    id="name"
-                    name="name"
-                    type="text"
-                    className={`w-full glass-input py-2.5 ${
-                      formik.touched.name && formik.errors.name ? 'border-red-500/50' : ''
-                    }`}
-                    placeholder=""
-                    value={formik.values.name}
-                    onChange={formik.handleChange}
-                    onBlur={formik.handleBlur}
-                  />
-                  {formik.touched.name && formik.errors.name && (
-                    <p className="text-xs text-red-400 mt-1">{formik.errors.name}</p>
-                  )}
+
+              <div className="space-y-4">
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                  <div className="space-y-1">
+                    <label className="text-[10px] font-bold text-slate-450 uppercase tracking-wider">
+                      Full Name *
+                    </label>
+                    <input
+                      id="name"
+                      name="name"
+                      type="text"
+                      className={`w-full glass-input py-2.5 ${formik.touched.name && formik.errors.name ? 'border-red-500/50' : ''
+                        }`}
+                      placeholder=""
+                      value={formik.values.name}
+                      onChange={formik.handleChange}
+                      onBlur={formik.handleBlur}
+                    />
+                    {formik.touched.name && formik.errors.name && (
+                      <p className="text-[10px] text-red-400 mt-1">{formik.errors.name}</p>
+                    )}
+                  </div>
+                  <div className="space-y-1">
+                    <label className="text-[10px] font-bold text-slate-450 uppercase tracking-wider">
+                      Roll Number *
+                    </label>
+                    <input
+                      id="rollNumber"
+                      name="rollNumber"
+                      type="number"
+                      disabled={!!editingStudent}
+                      className={`w-full glass-input py-2.5 disabled:opacity-50 disabled:cursor-not-allowed ${formik.touched.rollNumber && formik.errors.rollNumber ? 'border-red-500/50' : ''
+                        }`}
+                      placeholder=""
+                      value={formik.values.rollNumber}
+                      onChange={formik.handleChange}
+                      onBlur={formik.handleBlur}
+                    />
+                    {formik.touched.rollNumber && formik.errors.rollNumber && (
+                      <p className="text-[10px] text-red-400 mt-1">{formik.errors.rollNumber}</p>
+                    )}
+                  </div>
                 </div>
 
-                {/* Roll Number */}
-                <div className="space-y-1 text-left">
-                  <label className="text-xs font-semibold text-slate-350" htmlFor="rollNumber">
-                    Roll Number *
-                  </label>
-                  <input
-                    id="rollNumber"
-                    name="rollNumber"
-                    type="number"
-                    disabled={!!editingStudent}
-                    className={`w-full glass-input py-2.5 disabled:opacity-50 disabled:cursor-not-allowed ${
-                      formik.touched.rollNumber && formik.errors.rollNumber ? 'border-red-500/50' : ''
-                    }`}
-                    placeholder=""
-                    value={formik.values.rollNumber}
-                    onChange={formik.handleChange}
-                    onBlur={formik.handleBlur}
-                  />
-                  {formik.touched.rollNumber && formik.errors.rollNumber && (
-                    <p className="text-xs text-red-400 mt-1">{formik.errors.rollNumber}</p>
-                  )}
-                </div>
-              </div>
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                  <div className="space-y-1">
+                    <label className="text-[10px] font-bold text-slate-450 uppercase tracking-wider">
+                      Class Section *
+                    </label>
+                    <select
+                      id="class"
+                      name="class"
+                      className={`w-full glass-input py-2.5 ${formik.touched.class && formik.errors.class ? 'border-red-500/50' : ''
+                        }`}
+                      value={formik.values.class}
+                      onChange={formik.handleChange}
+                      onBlur={formik.handleBlur}
+                    >
+                      <option value="" className="bg-slate-900">Select Class</option>
+                      {classes.map(c => (
+                        <option key={c._id} value={c.className} className="bg-slate-900 text-white">
+                          {c.className} {c.section ? `(${c.section})` : ''}
+                        </option>
+                      ))}
+                    </select>
+                    {formik.touched.class && formik.errors.class && (
+                      <p className="text-[10px] text-red-400 mt-1">{formik.errors.class}</p>
+                    )}
+                  </div>
 
-              <div className="grid gap-4 sm:grid-cols-2">
-                {/* Class selection */}
-                <div className="space-y-1 text-left">
-                  <label className="text-xs font-semibold text-slate-350" htmlFor="class">
-                    Assigned Class *
-                  </label>
-                  <select
-                    id="class"
-                    name="class"
-                    className={`w-full glass-input py-2.5 ${
-                      formik.touched.class && formik.errors.class ? 'border-red-500/50' : ''
-                    }`}
-                    value={formik.values.class}
-                    onChange={formik.handleChange}
-                    onBlur={formik.handleBlur}
-                  >
-                    <option value="" className="bg-slate-900 text-slate-400">Select Class</option>
-                    {classes.map((cls) => (
-                      <option key={cls._id} value={cls.className} className="bg-slate-900 text-white">
-                        {cls.className} {cls.section ? `(${cls.section})` : ''}
-                      </option>
-                    ))}
-                  </select>
-                  {formik.touched.class && formik.errors.class && (
-                    <p className="text-xs text-red-400 mt-1">{formik.errors.class}</p>
-                  )}
+                  <div className="space-y-1">
+                    <label className="text-[10px] font-bold text-slate-450 uppercase tracking-wider">
+                      Admission Date
+                    </label>
+                    <input
+                      id="admissionDate"
+                      name="admissionDate"
+                      type="date"
+                      className="w-full glass-input py-2.5"
+                      value={formik.values.admissionDate}
+                      onChange={formik.handleChange}
+                      onBlur={formik.handleBlur}
+                    />
+                  </div>
                 </div>
 
-                {/* Admission Date */}
-                <div className="space-y-1 text-left">
-                  <label className="text-xs font-semibold text-slate-350" htmlFor="admissionDate">
-                    Admission Date
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                  <div className="space-y-1">
+                    <label className="text-[10px] font-bold text-slate-450 uppercase tracking-wider">
+                      Father's Name
+                    </label>
+                    <input
+                      id="fatherName"
+                      name="fatherName"
+                      type="text"
+                      className="w-full glass-input py-2.5"
+                      placeholder=""
+                      value={formik.values.fatherName}
+                      onChange={formik.handleChange}
+                      onBlur={formik.handleBlur}
+                    />
+                  </div>
+                  <div className="space-y-1">
+                    <label className="text-[10px] font-bold text-slate-450 uppercase tracking-wider">
+                      Phone Number
+                    </label>
+                    <input
+                      id="phone"
+                      name="phone"
+                      type="text"
+                      className={`w-full glass-input py-2.5 ${formik.touched.phone && formik.errors.phone ? 'border-red-500/50' : ''
+                        }`}
+                      placeholder=""
+                      value={formik.values.phone}
+                      onChange={formik.handleChange}
+                      onBlur={formik.handleBlur}
+                    />
+                    {formik.touched.phone && formik.errors.phone && (
+                      <p className="text-[10px] text-red-400 mt-1">{formik.errors.phone}</p>
+                    )}
+                  </div>
+                </div>
+
+                <div className="space-y-1">
+                  <label className="text-[10px] font-bold text-slate-450 uppercase tracking-wider">
+                    Full Address
                   </label>
-                  <input
-                    id="admissionDate"
-                    name="admissionDate"
-                    type="date"
+                  <textarea
+                    id="address"
+                    name="address"
+                    rows="2"
                     className="w-full glass-input py-2.5"
-                    value={formik.values.admissionDate}
+                    placeholder="Residential address..."
+                    value={formik.values.address}
                     onChange={formik.handleChange}
                     onBlur={formik.handleBlur}
-                  />
+                  ></textarea>
                 </div>
               </div>
 
-              <div className="grid gap-4 sm:grid-cols-2">
-                {/* Father Name */}
-                <div className="space-y-1 text-left">
-                  <label className="text-xs font-semibold text-slate-350" htmlFor="fatherName">
-                    Father's Name
-                  </label>
-                  <input
-                    id="fatherName"
-                    name="fatherName"
-                    type="text"
-                    className="w-full glass-input py-2.5"
-                    placeholder=""
-                    value={formik.values.fatherName}
-                    onChange={formik.handleChange}
-                  />
-                </div>
-
-                {/* Phone */}
-                <div className="space-y-1 text-left">
-                  <label className="text-xs font-semibold text-slate-350" htmlFor="phone">
-                    Contact Phone
-                  </label>
-                  <input
-                    id="phone"
-                    name="phone"
-                    type="text"
-                    className={`w-full glass-input py-2.5 ${
-                      formik.touched.phone && formik.errors.phone ? 'border-red-500/50' : ''
-                    }`}
-                    placeholder=""
-                    value={formik.values.phone}
-                    onChange={formik.handleChange}
-                    onBlur={formik.handleBlur}
-                  />
-                  {formik.touched.phone && formik.errors.phone && (
-                    <p className="text-xs text-red-400 mt-1">{formik.errors.phone}</p>
-                  )}
-                </div>
-              </div>
-
-              {/* Address */}
-              <div className="space-y-1 text-left">
-                <label className="text-xs font-semibold text-slate-350" htmlFor="address">
-                  Residential Address
-                </label>
-                <textarea
-                  id="address"
-                  name="address"
-                  rows="2"
-                  className="w-full glass-input py-2.5 resize-none"
-                  placeholder=""
-                  value={formik.values.address}
-                  onChange={formik.handleChange}
-                ></textarea>
-              </div>
-
-              <div className="pt-4 flex gap-3">
-                <button
-                  type="button"
-                  onClick={() => setModalOpen(false)}
-                  className="flex-1 rounded-xl border border-slate-800 hover:bg-slate-800 text-slate-300 py-3 text-sm font-semibold transition-all min-h-[44px]"
-                >
-                  Cancel
-                </button>
+              <div className="pt-2">
                 <button
                   type="submit"
-                  className="flex-1 rounded-xl bg-sky-500 hover:bg-sky-600 text-white py-3 text-sm font-semibold transition-all active:scale-[0.98] min-h-[44px]"
+                  disabled={formik.isSubmitting}
+                  className="w-full py-3 rounded-xl bg-blue-600 hover:bg-blue-700 disabled:opacity-50 text-sm font-bold text-white shadow-lg shadow-blue-500/10 cursor-pointer transition-colors"
                 >
-                  {editingStudent ? 'Save Changes' : 'Add Student'}
+                  {formik.isSubmitting ? 'Processing...' : (editingStudent ? 'Update Profile' : 'Register Student')}
                 </button>
               </div>
             </form>
           </div>
-        </div>
+        </div>,
+        document.body
+      )}
+
+      {/* Profile Modal */}
+      {profileOpen && selectedStudent && createPortal(
+        <div className="fixed inset-0 z-[100] flex items-end justify-center sm:items-center p-0 sm:p-4">
+          <div className="fixed inset-0 bg-slate-950/80 backdrop-blur-sm" onClick={() => setProfileOpen(false)}></div>
+          <div className="relative w-full max-w-3xl bg-slate-900 border border-slate-800 rounded-t-3xl sm:rounded-3xl p-6 sm:p-8 shadow-2xl animate-fade-in text-left max-h-[90vh] overflow-y-auto custom-scrollbar">
+            
+            <div className="flex items-start justify-between border-b border-slate-800 pb-6 mb-6">
+              <div className="flex items-center gap-4 sm:gap-5">
+                <div className="h-16 w-16 sm:h-20 sm:w-20 bg-sky-500/10 border border-sky-500/20 text-sky-400 rounded-full flex items-center justify-center shrink-0">
+                  <User className="h-8 w-8 sm:h-10 sm:w-10" />
+                </div>
+                <div>
+                  <h3 className="text-xl sm:text-3xl font-black text-white">{selectedStudent.name}</h3>
+                  <div className="flex flex-wrap gap-2 sm:gap-3 text-sm mt-2">
+                    <span className="font-mono bg-slate-800 px-2 sm:px-3 py-1 rounded-full text-xs text-slate-300">Roll: {selectedStudent.rollNumber}</span>
+                    <span className="bg-sky-500/10 text-sky-400 px-2 sm:px-3 py-1 rounded-full text-xs font-semibold">Class {selectedStudent.class}</span>
+                  </div>
+                </div>
+              </div>
+
+              <button
+                onClick={() => {
+                  setProfileOpen(false);
+                  setSelectedStudent(null);
+                }}
+                className="p-2 rounded-xl bg-slate-800/50 text-slate-400 hover:bg-slate-700 hover:text-white cursor-pointer transition-colors shrink-0"
+              >
+                <X className="h-5 w-5" />
+              </button>
+            </div>
+
+            {profileLoading ? (
+              <div className="flex justify-center py-12">
+                <div className="h-10 w-10 animate-spin rounded-full border-4 border-slate-800 border-t-sky-500"></div>
+              </div>
+            ) : (
+              <div className="grid gap-6 md:grid-cols-2 pb-4">
+                
+                {/* General Info */}
+                <div className="space-y-4">
+                  <h4 className="text-xs sm:text-sm font-bold text-slate-400 uppercase tracking-widest flex items-center gap-2">
+                    <User className="h-4 w-4" /> Personal Details
+                  </h4>
+                  <div className="bg-slate-800/30 p-5 rounded-2xl border border-slate-800/50 space-y-4 text-sm">
+                    <div className="flex justify-between items-center">
+                      <span className="text-slate-500 font-medium">Father's Name</span>
+                      <span className="font-bold text-white text-right">{selectedStudent.fatherName || '-'}</span>
+                    </div>
+                    <div className="flex justify-between items-center">
+                      <span className="text-slate-500 font-medium">Phone Number</span>
+                      <span className="font-bold text-white font-mono text-right">{selectedStudent.phone || '-'}</span>
+                    </div>
+                    <div className="flex justify-between items-center">
+                      <span className="text-slate-500 font-medium">Admission Date</span>
+                      <span className="font-bold text-white text-right">
+                        {selectedStudent.admissionDate ? new Date(selectedStudent.admissionDate).toLocaleDateString() : '-'}
+                      </span>
+                    </div>
+                    <div className="flex flex-col gap-1.5 pt-1">
+                      <span className="text-slate-500 font-medium">Address</span>
+                      <span className="font-bold text-white leading-relaxed">{selectedStudent.address || '-'}</span>
+                    </div>
+                  </div>
+                </div>
+
+                {/* Marks / Progress */}
+                <div className="space-y-4">
+                  <h4 className="text-xs sm:text-sm font-bold text-slate-400 uppercase tracking-widest flex items-center gap-2">
+                    <CheckCircle className="h-4 w-4" /> Academic Progress
+                  </h4>
+                  <div className="bg-slate-800/30 p-5 rounded-2xl border border-slate-800/50 space-y-4 max-h-56 overflow-y-auto custom-scrollbar">
+                    {studentMarks.length === 0 ? (
+                      <p className="text-sm text-slate-500 text-center py-6 font-medium">No marks recorded yet.</p>
+                    ) : (
+                      studentMarks.map((mark, i) => {
+                        const percentage = ((mark.marksObtained / mark.maxMarks) * 100).toFixed(1);
+                        return (
+                          <div key={i} className="flex justify-between items-center border-b border-slate-800/60 pb-3 last:border-0 last:pb-0">
+                            <div>
+                              <p className="text-sm font-bold text-white">{mark.subject}</p>
+                              <p className="text-xs font-medium text-slate-500 mt-0.5">{mark.examType || 'Exam'}</p>
+                            </div>
+                            <div className="text-right">
+                              <p className="text-sm font-mono font-bold text-sky-400">{mark.marksObtained} <span className="text-slate-600">/</span> {mark.maxMarks}</p>
+                              <p className="text-xs font-bold text-slate-400 mt-0.5">{percentage}%</p>
+                            </div>
+                          </div>
+                        );
+                      })
+                    )}
+                  </div>
+                </div>
+
+                {/* Fees Pending */}
+                <div className="space-y-4 mt-2">
+                  <h4 className="text-xs sm:text-sm font-bold text-slate-400 uppercase tracking-widest flex items-center gap-2">
+                    <IndianRupee className="h-4 w-4" /> Fee Status
+                  </h4>
+                  <div className="bg-slate-800/30 p-5 rounded-2xl border border-slate-800/50 max-h-48 overflow-y-auto custom-scrollbar">
+                    {studentFees.length === 0 ? (
+                      <p className="text-sm text-slate-500 text-center py-6 font-medium">No fee records found.</p>
+                    ) : (
+                      <div className="grid grid-cols-1 gap-4">
+                        {studentFees.map((fee, i) => (
+                          <div key={i} className="p-4 rounded-xl bg-slate-900 border border-slate-800 flex justify-between items-center shadow-inner">
+                            <div>
+                              <p className="text-[10px] font-bold text-slate-500 uppercase tracking-wider mb-1">Amount</p>
+                              <p className="text-base font-black text-white">₹{fee.amount}</p>
+                            </div>
+                            <span className={`px-3 py-1.5 rounded-lg text-xs font-black uppercase tracking-wider ${fee.status === 'Paid' ? 'bg-emerald-500/10 text-emerald-400 border border-emerald-500/20' : 'bg-amber-500/10 text-amber-400 border border-amber-500/20'}`}>
+                              {fee.status}
+                            </span>
+                          </div>
+                        ))}
+                      </div>
+                    )}
+                  </div>
+                </div>
+
+                {/* Attendance */}
+                <div className="space-y-4 mt-2">
+                  <h4 className="text-xs sm:text-sm font-bold text-slate-400 uppercase tracking-widest flex items-center gap-2">
+                    <CalendarCheck className="h-4 w-4" /> Attendance Record
+                  </h4>
+                  <div className="bg-slate-800/30 p-5 rounded-2xl border border-slate-800/50 space-y-4 max-h-48 overflow-y-auto custom-scrollbar">
+                    {studentAttendance.length === 0 ? (
+                      <p className="text-sm text-slate-500 text-center py-6 font-medium">No attendance records found.</p>
+                    ) : (
+                      studentAttendance.slice(0, 10).map((att, i) => {
+                        let statusColor = "bg-slate-500/10 text-slate-400 border-slate-500/20";
+                        if (att.status === 'Present') statusColor = "bg-emerald-500/10 text-emerald-400 border-emerald-500/20";
+                        else if (att.status === 'Absent') statusColor = "bg-red-500/10 text-red-400 border-red-500/20";
+                        else if (att.status === 'Holiday') statusColor = "bg-sky-500/10 text-sky-400 border-sky-500/20";
+
+                        return (
+                          <div key={i} className="flex justify-between items-center border-b border-slate-800/60 pb-3 last:border-0 last:pb-0">
+                            <div>
+                              <p className="text-sm font-bold text-white">{new Date(att.date).toLocaleDateString(undefined, { weekday: 'short', month: 'short', day: 'numeric' })}</p>
+                            </div>
+                            <span className={`px-2.5 py-1 rounded-md text-[10px] font-bold uppercase tracking-widest border ${statusColor}`}>
+                              {att.status}
+                            </span>
+                          </div>
+                        );
+                      })
+                    )}
+                  </div>
+                </div>
+
+              </div>
+            )}
+          </div>
+        </div>,
+        document.body
       )}
     </div>
   );

@@ -1,16 +1,16 @@
 import React, { useEffect, useState } from 'react';
 import { Link } from 'react-router-dom';
-import { 
-  Users, 
-  BookOpen, 
-  Calendar, 
-  FileText, 
-  CheckSquare, 
-  Bell, 
-  MessageSquare, 
-  Volume2, 
-  Clock, 
-  TrendingUp, 
+import {
+  Users,
+  BookOpen,
+  Calendar,
+  FileText,
+  CheckSquare,
+  Bell,
+  MessageSquare,
+  Volume2,
+  Clock,
+  TrendingUp,
   Award,
   Upload,
   Plus,
@@ -20,15 +20,17 @@ import {
   FileCheck,
   ArrowRight,
   GraduationCap,
-  X
+  X,
+  Edit,
+  Trash2
 } from 'lucide-react';
-import { 
-  ResponsiveContainer, 
-  AreaChart, 
-  Area, 
-  XAxis, 
-  YAxis, 
-  CartesianGrid, 
+import {
+  ResponsiveContainer,
+  AreaChart,
+  Area,
+  XAxis,
+  YAxis,
+  CartesianGrid,
   Tooltip,
   BarChart,
   Bar
@@ -41,10 +43,10 @@ import { attendanceService } from '../services/attendance.service';
 import { assignmentService } from '../services/assignment.service';
 import { marksService } from '../services/marks.service';
 import { studyMaterialService } from '../services/studymaterial.service';
-
+import { timetableService } from '../services/timetable.service';
 const TeacherDashboard = () => {
   const { user } = useAuth();
-  
+
   // State for loaded data
   const [stats, setStats] = useState({
     totalStudents: 154,
@@ -69,11 +71,8 @@ const TeacherDashboard = () => {
   const [notesForm, setNotesForm] = useState({ title: '', classId: '', file: null });
 
   // Mock list items for rich dynamic display
-  const [timetable, setTimetable] = useState([
-    { id: 1, time: '09:00 AM - 10:00 AM', subject: 'Mathematics', class: 'Class 10-A', room: 'Room 302' },
-    { id: 2, time: '10:15 AM - 11:15 AM', subject: 'Algebra basics', class: 'Class 9-B', room: 'Room 204' },
-    { id: 3, time: '11:30 AM - 12:30 PM', subject: 'Advanced Calculus', class: 'Class 12-A', room: 'Room 501' }
-  ]);
+  const [timetable, setTimetable] = useState([]);
+  const [timetableForm, setTimetableForm] = useState({ id: '', classId: '', subject: '', day: 'Monday', timeStart: '', timeEnd: '', room: '' });
 
   const [classesList, setClassesList] = useState([
     { id: 1, name: 'Class 10-A', count: 42, subject: 'Mathematics' },
@@ -107,7 +106,7 @@ const TeacherDashboard = () => {
       try {
         setLoading(true);
         setError('');
-        
+
         // 1. Fetch current teacher profile details
         const teacherRes = await teacherService.getAll({ search: user.fullName, limit: 5 }).catch(() => null);
         const match = (teacherRes?.teachers || []).find(
@@ -116,9 +115,10 @@ const TeacherDashboard = () => {
         setTeacherDetail(match || null);
 
         // 2. Fetch live stats summaries where available
-        const [studentRes, classRes] = await Promise.all([
+        const [studentRes, classRes, timetableRes] = await Promise.all([
           studentService.getAll({ limit: 1 }).catch(() => null),
           classService.getAll({ limit: 100 }).catch(() => null),
+          timetableService.getAll({}).catch(() => null),
         ]);
 
         if (studentRes?.pagination?.totalStudents) {
@@ -134,6 +134,12 @@ const TeacherDashboard = () => {
             ...prev,
             myClasses: classRes.pagination?.totalClasses || classRes.classes.length
           }));
+        }
+
+        if (timetableRes) {
+          const today = new Date().toLocaleDateString('en-US', { weekday: 'long' });
+          const todaysTimetable = timetableRes.filter(t => t.day === today);
+          setTimetable(todaysTimetable);
         }
       } catch (err) {
         console.error('Error in teacher dashboard loading:', err);
@@ -161,10 +167,10 @@ const TeacherDashboard = () => {
         alert("Please enter a valid numeric Roll Number");
         return;
       }
-      
+
       const stuRes = await studentService.getAll({ limit: 100 });
       const matchedStudent = (stuRes?.students || []).find(s => Number(s.rollNumber) === rollNum);
-      
+
       if (!matchedStudent) {
         alert("No student found with Roll Number: " + rollNum);
         return;
@@ -189,7 +195,7 @@ const TeacherDashboard = () => {
   const handleAssignmentSubmit = async (e) => {
     e.preventDefault();
     if (!assignmentForm.title || !assignmentForm.classId) return;
-    
+
     try {
       // Find class name for UI listing
       const classRes = await classService.getAll({ limit: 50 }).catch(() => null);
@@ -234,7 +240,7 @@ const TeacherDashboard = () => {
 
       const stuRes = await studentService.getAll({ limit: 100 });
       const matchedStudent = (stuRes?.students || []).find(s => Number(s.rollNumber) === rollNum);
-      
+
       if (!matchedStudent) {
         alert("No student found with Roll Number: " + rollNum);
         return;
@@ -278,9 +284,55 @@ const TeacherDashboard = () => {
     }
   };
 
+  const handleTimetableSubmit = async (e) => {
+    e.preventDefault();
+    try {
+      if (timetableForm.id) {
+        await timetableService.update(timetableForm.id, timetableForm);
+        setModalSuccess('Timetable updated successfully!');
+      } else {
+        await timetableService.create(timetableForm);
+        setModalSuccess('Timetable entry added successfully!');
+      }
+      setTimeout(() => {
+        setModalType(null);
+        setTimetableForm({ id: '', classId: '', subject: '', day: 'Monday', timeStart: '', timeEnd: '', room: '' });
+        // Trigger a re-fetch of timetable data by just reloading or calling fetch DashboardData if it was extracted,
+        // but since fetchDashboardData is inside useEffect, we might need to reload or move it outside.
+        // For now, window.location.reload() is a quick fix, but moving fetchDashboardData outside would be better.
+        window.location.reload();
+      }, 1500);
+    } catch (err) {
+      alert(err?.response?.data?.message || 'Failed to save timetable');
+    }
+  };
+
+  const handleDeleteTimetable = async (id) => {
+    if (!window.confirm("Are you sure you want to delete this timetable entry?")) return;
+    try {
+      await timetableService.delete(id);
+      setTimetable(prev => prev.filter(t => t._id !== id));
+    } catch (err) {
+      alert(err?.response?.data?.message || 'Failed to delete timetable entry');
+    }
+  };
+
+  const openEditTimetable = (slot) => {
+    setTimetableForm({
+      id: slot._id,
+      classId: slot.classId,
+      subject: slot.subject,
+      day: slot.day,
+      timeStart: slot.timeStart,
+      timeEnd: slot.timeEnd,
+      room: slot.room
+    });
+    setModalType('timetable');
+  };
+
   return (
     <div className="space-y-6 text-left pb-12">
-      
+
       {/* ── Header: Teacher Profile Card ── */}
       <div className="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-3xl p-6 relative overflow-hidden">
         <div className="absolute top-0 right-0 h-32 w-32 bg-blue-500/5 rounded-full translate-x-10 -translate-y-10 blur-xl"></div>
@@ -328,7 +380,8 @@ const TeacherDashboard = () => {
           { label: 'Mark Attendance', icon: BookOpenCheck, color: 'hover:border-amber-500 hover:text-amber-600 dark:hover:text-amber-400 bg-amber-500/5', type: 'attendance' },
           { label: 'Add Assignment', icon: Plus, color: 'hover:border-blue-500 hover:text-blue-600 dark:hover:text-blue-400 bg-blue-500/5', type: 'assignment' },
           { label: 'Record Exam Marks', icon: Award, color: 'hover:border-violet-500 hover:text-violet-600 dark:hover:text-violet-400 bg-violet-500/5', type: 'marks' },
-          { label: 'Upload Study Notes', icon: Upload, color: 'hover:border-emerald-500 hover:text-emerald-600 dark:hover:text-emerald-400 bg-emerald-500/5', type: 'notes' }
+          { label: 'Upload Study Notes', icon: Upload, color: 'hover:border-emerald-500 hover:text-emerald-600 dark:hover:text-emerald-400 bg-emerald-500/5', type: 'notes' },
+          { label: 'Manage Timetable', icon: Calendar, color: 'hover:border-sky-500 hover:text-sky-600 dark:hover:text-sky-400 bg-sky-500/5', type: 'timetable' }
         ].map((act, i) => {
           const Icon = act.icon;
           return (
@@ -376,7 +429,7 @@ const TeacherDashboard = () => {
 
         {/* ── LEFT COLUMN ── */}
         <div className="lg:col-span-8 space-y-6">
-          
+
           {/* Today's Timetable */}
           <div className="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-3xl p-6 shadow-sm">
             <div className="flex items-center justify-between mb-5 border-b border-slate-100 dark:border-slate-800 pb-3">
@@ -390,27 +443,40 @@ const TeacherDashboard = () => {
             </div>
 
             <div className="space-y-3">
-              {timetable.map((slot) => (
-                <div key={slot.id} className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 p-4 rounded-2xl border border-slate-100 dark:border-slate-800/80 bg-slate-50/50 dark:bg-slate-950/20 hover:border-slate-200 dark:hover:border-slate-700 transition-all">
-                  <div className="flex items-center gap-3">
-                    <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-blue-50 dark:bg-blue-950/40 text-blue-600 dark:text-blue-400 shrink-0">
-                      <Clock className="h-4.5 w-4.5" />
+              {timetable.map((slot) => {
+                const cls = classesList.find(c => c._id === slot.classId || c.id === slot.classId);
+                const classNameStr = cls ? (cls.className ? `${cls.className} ${cls.section || ''}` : cls.name) : 'Unknown Class';
+                return (
+                  <div key={slot._id || slot.id} className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 p-4 rounded-2xl border border-slate-100 dark:border-slate-800/80 bg-slate-50/50 dark:bg-slate-950/20 hover:border-slate-200 dark:hover:border-slate-700 transition-all">
+                    <div className="flex items-center gap-3">
+                      <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-blue-50 dark:bg-blue-950/40 text-blue-600 dark:text-blue-400 shrink-0">
+                        <Clock className="h-4.5 w-4.5" />
+                      </div>
+                      <div>
+                        <p className="text-xs font-bold text-slate-500 dark:text-slate-450">{slot.timeStart} - {slot.timeEnd}</p>
+                        <p className="text-sm font-black text-slate-800 dark:text-white mt-0.5">{slot.subject}</p>
+                      </div>
                     </div>
-                    <div>
-                      <p className="text-xs font-bold text-slate-500 dark:text-slate-450">{slot.time}</p>
-                      <p className="text-sm font-black text-slate-800 dark:text-white mt-0.5">{slot.subject}</p>
+                    <div className="flex items-center gap-2">
+                      <span className="px-2.5 py-1 rounded-lg text-xs font-semibold bg-slate-200/60 dark:bg-slate-800 text-slate-700 dark:text-slate-300">
+                        {classNameStr}
+                      </span>
+                      <span className="px-2.5 py-1 rounded-lg text-xs font-semibold bg-blue-50 dark:bg-blue-950/40 text-blue-600 dark:text-blue-400">
+                        {slot.room}
+                      </span>
+                      <button onClick={() => openEditTimetable(slot)} className="p-1.5 rounded-lg text-slate-400 hover:text-blue-600 hover:bg-blue-50 transition-colors">
+                        <Edit className="h-4 w-4" />
+                      </button>
+                      <button onClick={() => handleDeleteTimetable(slot._id)} className="p-1.5 rounded-lg text-slate-400 hover:text-red-600 hover:bg-red-50 transition-colors">
+                        <Trash2 className="h-4 w-4" />
+                      </button>
                     </div>
                   </div>
-                  <div className="flex items-center gap-2">
-                    <span className="px-2.5 py-1 rounded-lg text-xs font-semibold bg-slate-200/60 dark:bg-slate-800 text-slate-700 dark:text-slate-300">
-                      {slot.class}
-                    </span>
-                    <span className="px-2.5 py-1 rounded-lg text-xs font-semibold bg-blue-50 dark:bg-blue-950/40 text-blue-600 dark:text-blue-400">
-                      {slot.room}
-                    </span>
-                  </div>
-                </div>
-              ))}
+                );
+              })}
+              {timetable.length === 0 && (
+                <div className="text-center py-6 text-slate-500 text-sm">No classes scheduled for today.</div>
+              )}
             </div>
           </div>
 
@@ -473,7 +539,7 @@ const TeacherDashboard = () => {
               <h3 className="text-sm font-bold text-slate-900 dark:text-white">Academic Calendar</h3>
               <Calendar className="h-4.5 w-4.5 text-blue-500" />
             </div>
-            
+
             {/* Minimal calendar mockup */}
             <div className="grid grid-cols-7 gap-1 text-center text-[10px] font-bold text-slate-400">
               {['S', 'M', 'T', 'W', 'T', 'F', 'S'].map((day, i) => <div key={i} className="py-1">{day}</div>)}
@@ -483,13 +549,12 @@ const TeacherDashboard = () => {
                 const day = i + 1;
                 const isToday = day === 28;
                 return (
-                  <div 
-                    key={i} 
-                    className={`py-1.5 rounded-lg flex items-center justify-center ${
-                      isToday 
-                        ? 'bg-blue-600 text-white font-black shadow-md shadow-blue-500/20' 
+                  <div
+                    key={i}
+                    className={`py-1.5 rounded-lg flex items-center justify-center ${isToday
+                        ? 'bg-blue-600 text-white font-black shadow-md shadow-blue-500/20'
                         : 'hover:bg-slate-100 dark:hover:bg-slate-850'
-                    }`}
+                      }`}
                   >
                     {day}
                   </div>
@@ -504,7 +569,7 @@ const TeacherDashboard = () => {
               <h3 className="text-sm font-bold text-slate-900 dark:text-white">My Classes</h3>
               <Link to="/dashboard/classes" className="text-xs text-blue-600 dark:text-blue-400 hover:underline">Manage</Link>
             </div>
-            
+
             <div className="space-y-2.5">
               {classesList.map((cls) => (
                 <div key={cls._id || cls.id} className="flex items-center justify-between p-3 rounded-xl bg-slate-50/50 dark:bg-slate-950/20 border border-slate-100 dark:border-slate-800/80">
@@ -553,7 +618,7 @@ const TeacherDashboard = () => {
       {modalType && (
         <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-950/60 backdrop-blur-sm">
           <div className="w-full max-w-md bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-3xl p-6 shadow-2xl relative overflow-hidden animate-fade-in text-left">
-            <button 
+            <button
               onClick={() => setModalType(null)}
               className="absolute top-4 right-4 p-1 rounded-lg text-slate-450 hover:bg-slate-100 dark:hover:bg-slate-800 cursor-pointer"
             >
@@ -575,12 +640,12 @@ const TeacherDashboard = () => {
                   <form onSubmit={handleAttendanceSubmit} className="space-y-4">
                     <h3 className="text-lg font-bold text-slate-950 dark:text-white">Mark Quick Attendance</h3>
                     <p className="text-xs text-slate-400">Record a student attendance entry instantly.</p>
-                    
+
                     <div className="space-y-1">
                       <label className="text-xs font-bold text-slate-450 dark:text-slate-500 uppercase tracking-wide">Select Class</label>
-                      <select 
-                        required 
-                        value={attendanceForm.classId} 
+                      <select
+                        required
+                        value={attendanceForm.classId}
                         onChange={(e) => setAttendanceForm({ ...attendanceForm, classId: e.target.value })}
                         className="w-full glass-input p-2.5 text-xs text-slate-800 dark:text-slate-200 bg-white dark:bg-slate-950"
                       >
@@ -595,9 +660,9 @@ const TeacherDashboard = () => {
 
                     <div className="space-y-1">
                       <label className="text-xs font-bold text-slate-450 dark:text-slate-500 uppercase tracking-wide">Student Roll No / Name</label>
-                      <input 
-                        required 
-                        type="text" 
+                      <input
+                        required
+                        type="text"
                         placeholder="e.g. Roll 101 or Alice Johnson"
                         value={attendanceForm.studentId}
                         onChange={(e) => setAttendanceForm({ ...attendanceForm, studentId: e.target.value })}
@@ -613,11 +678,10 @@ const TeacherDashboard = () => {
                             key={st}
                             type="button"
                             onClick={() => setAttendanceForm({ ...attendanceForm, status: st })}
-                            className={`flex-1 py-2 rounded-xl text-xs font-bold transition-all border ${
-                              attendanceForm.status === st 
+                            className={`flex-1 py-2 rounded-xl text-xs font-bold transition-all border ${attendanceForm.status === st
                                 ? 'bg-blue-600 text-white border-blue-600'
                                 : 'border-slate-200 dark:border-slate-800 text-slate-600 dark:text-slate-350 hover:bg-slate-50 dark:hover:bg-slate-850'
-                            }`}
+                              }`}
                           >
                             {st}
                           </button>
@@ -639,9 +703,9 @@ const TeacherDashboard = () => {
 
                     <div className="space-y-1">
                       <label className="text-xs font-bold text-slate-450 dark:text-slate-500 uppercase tracking-wide">Assignment Title</label>
-                      <input 
-                        required 
-                        type="text" 
+                      <input
+                        required
+                        type="text"
                         placeholder="e.g. Calculus Section 4.2 Problems"
                         value={assignmentForm.title}
                         onChange={(e) => setAssignmentForm({ ...assignmentForm, title: e.target.value })}
@@ -651,9 +715,9 @@ const TeacherDashboard = () => {
 
                     <div className="space-y-1">
                       <label className="text-xs font-bold text-slate-450 dark:text-slate-500 uppercase tracking-wide">Target Class</label>
-                      <select 
-                        required 
-                        value={assignmentForm.classId} 
+                      <select
+                        required
+                        value={assignmentForm.classId}
                         onChange={(e) => setAssignmentForm({ ...assignmentForm, classId: e.target.value })}
                         className="w-full glass-input p-2.5 text-xs text-slate-800 dark:text-slate-200 bg-white dark:bg-slate-950"
                       >
@@ -668,9 +732,9 @@ const TeacherDashboard = () => {
 
                     <div className="space-y-1">
                       <label className="text-xs font-bold text-slate-450 dark:text-slate-500 uppercase tracking-wide">Due Date & Time</label>
-                      <input 
-                        required 
-                        type="datetime-local" 
+                      <input
+                        required
+                        type="datetime-local"
                         value={assignmentForm.dueDate}
                         onClick={(e) => e.target.showPicker && e.target.showPicker()}
                         onChange={(e) => setAssignmentForm({ ...assignmentForm, dueDate: e.target.value })}
@@ -693,9 +757,9 @@ const TeacherDashboard = () => {
                     <div className="grid grid-cols-2 gap-3">
                       <div className="space-y-1">
                         <label className="text-xs font-bold text-slate-450 dark:text-slate-500 uppercase tracking-wide">Student Roll No</label>
-                        <input 
-                          required 
-                          type="text" 
+                        <input
+                          required
+                          type="text"
                           placeholder="e.g. 102"
                           value={marksForm.studentId}
                           onChange={(e) => setMarksForm({ ...marksForm, studentId: e.target.value })}
@@ -704,9 +768,9 @@ const TeacherDashboard = () => {
                       </div>
                       <div className="space-y-1">
                         <label className="text-xs font-bold text-slate-450 dark:text-slate-500 uppercase tracking-wide">Subject Module</label>
-                        <input 
-                          required 
-                          type="text" 
+                        <input
+                          required
+                          type="text"
                           placeholder="e.g. Math Paper 1"
                           value={marksForm.subject}
                           onChange={(e) => setMarksForm({ ...marksForm, subject: e.target.value })}
@@ -718,9 +782,9 @@ const TeacherDashboard = () => {
                     <div className="grid grid-cols-2 gap-3">
                       <div className="space-y-1">
                         <label className="text-xs font-bold text-slate-450 dark:text-slate-500 uppercase tracking-wide">Obtained Marks</label>
-                        <input 
-                          required 
-                          type="number" 
+                        <input
+                          required
+                          type="number"
                           placeholder="85"
                           value={marksForm.marks}
                           onChange={(e) => setMarksForm({ ...marksForm, marks: e.target.value })}
@@ -729,9 +793,9 @@ const TeacherDashboard = () => {
                       </div>
                       <div className="space-y-1">
                         <label className="text-xs font-bold text-slate-450 dark:text-slate-500 uppercase tracking-wide">Max Points</label>
-                        <input 
-                          required 
-                          type="number" 
+                        <input
+                          required
+                          type="number"
                           placeholder="100"
                           value={marksForm.total}
                           onChange={(e) => setMarksForm({ ...marksForm, total: e.target.value })}
@@ -754,9 +818,9 @@ const TeacherDashboard = () => {
 
                     <div className="space-y-1">
                       <label className="text-xs font-bold text-slate-450 dark:text-slate-500 uppercase tracking-wide">Material Title</label>
-                      <input 
-                        required 
-                        type="text" 
+                      <input
+                        required
+                        type="text"
                         placeholder="e.g. Calculus Lecture Handout PDF"
                         value={notesForm.title}
                         onChange={(e) => setNotesForm({ ...notesForm, title: e.target.value })}
@@ -766,9 +830,9 @@ const TeacherDashboard = () => {
 
                     <div className="space-y-1">
                       <label className="text-xs font-bold text-slate-450 dark:text-slate-500 uppercase tracking-wide">Share With Class</label>
-                      <select 
-                        required 
-                        value={notesForm.classId} 
+                      <select
+                        required
+                        value={notesForm.classId}
                         onChange={(e) => setNotesForm({ ...notesForm, classId: e.target.value })}
                         className="w-full glass-input p-2.5 text-xs text-slate-800 dark:text-slate-200 bg-white dark:bg-slate-950"
                       >
@@ -796,6 +860,100 @@ const TeacherDashboard = () => {
 
                     <button type="submit" className="w-full py-3 rounded-xl bg-blue-600 hover:bg-blue-700 text-xs font-bold text-white shadow-lg shadow-blue-500/10 cursor-pointer">
                       Upload and Publish Document
+                    </button>
+                  </form>
+                )}
+
+                {/* 5. Add/Edit Timetable Form */}
+                {modalType === 'timetable' && (
+                  <form onSubmit={handleTimetableSubmit} className="space-y-4">
+                    <h3 className="text-lg font-bold text-slate-950 dark:text-white">
+                      {timetableForm.id ? 'Edit Timetable Entry' : 'Add Timetable Entry'}
+                    </h3>
+
+                    <div className="space-y-1">
+                      <label className="text-xs font-bold text-slate-450 dark:text-slate-500 uppercase tracking-wide">Select Class</label>
+                      <select
+                        required
+                        value={timetableForm.classId}
+                        onChange={(e) => setTimetableForm({ ...timetableForm, classId: e.target.value })}
+                        className="w-full glass-input p-2.5 text-xs text-slate-800 dark:text-slate-200 bg-white dark:bg-slate-950"
+                      >
+                        <option value="">Choose Class Room</option>
+                        {classesList.map(c => (
+                          <option key={c._id || c.id} value={c._id || c.id}>
+                            {c.className ? `${c.className} ${c.section || ''}` : c.name}
+                          </option>
+                        ))}
+                      </select>
+                    </div>
+
+                    <div className="grid grid-cols-2 gap-3">
+                      <div className="space-y-1">
+                        <label className="text-xs font-bold text-slate-450 dark:text-slate-500 uppercase tracking-wide">Subject</label>
+                        <input
+                          required
+                          type="text"
+                          placeholder="e.g. Physics"
+                          value={timetableForm.subject}
+                          onChange={(e) => setTimetableForm({ ...timetableForm, subject: e.target.value })}
+                          className="w-full glass-input p-2.5 text-xs text-slate-850 dark:text-slate-200"
+                        />
+                      </div>
+                      <div className="space-y-1">
+                        <label className="text-xs font-bold text-slate-450 dark:text-slate-500 uppercase tracking-wide">Room</label>
+                        <input
+                          required
+                          type="text"
+                          placeholder="e.g. Lab 1"
+                          value={timetableForm.room}
+                          onChange={(e) => setTimetableForm({ ...timetableForm, room: e.target.value })}
+                          className="w-full glass-input p-2.5 text-xs text-slate-850 dark:text-slate-200"
+                        />
+                      </div>
+                    </div>
+
+                    <div className="space-y-1">
+                      <label className="text-xs font-bold text-slate-450 dark:text-slate-500 uppercase tracking-wide">Day</label>
+                      <select
+                        required
+                        value={timetableForm.day}
+                        onChange={(e) => setTimetableForm({ ...timetableForm, day: e.target.value })}
+                        className="w-full glass-input p-2.5 text-xs text-slate-800 dark:text-slate-200 bg-white dark:bg-slate-950"
+                      >
+                        {['Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday', 'Sunday'].map(d => (
+                          <option key={d} value={d}>{d}</option>
+                        ))}
+                      </select>
+                    </div>
+
+                    <div className="grid grid-cols-2 gap-3">
+                      <div className="space-y-1">
+                        <label className="text-xs font-bold text-slate-450 dark:text-slate-500 uppercase tracking-wide">Start Time</label>
+                        <input
+                          required
+                          type="text"
+                          placeholder="e.g. 09:00 AM"
+                          value={timetableForm.timeStart}
+                          onChange={(e) => setTimetableForm({ ...timetableForm, timeStart: e.target.value })}
+                          className="w-full glass-input p-2.5 text-xs text-slate-850 dark:text-slate-200"
+                        />
+                      </div>
+                      <div className="space-y-1">
+                        <label className="text-xs font-bold text-slate-450 dark:text-slate-500 uppercase tracking-wide">End Time</label>
+                        <input
+                          required
+                          type="text"
+                          placeholder="e.g. 10:00 AM"
+                          value={timetableForm.timeEnd}
+                          onChange={(e) => setTimetableForm({ ...timetableForm, timeEnd: e.target.value })}
+                          className="w-full glass-input p-2.5 text-xs text-slate-850 dark:text-slate-200"
+                        />
+                      </div>
+                    </div>
+
+                    <button type="submit" className="w-full py-3 rounded-xl bg-blue-600 hover:bg-blue-700 text-xs font-bold text-white shadow-lg shadow-blue-500/10 cursor-pointer">
+                      Save Timetable Entry
                     </button>
                   </form>
                 )}

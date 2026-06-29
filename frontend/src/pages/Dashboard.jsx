@@ -1,10 +1,10 @@
 import React, { useEffect, useState } from 'react';
-import { 
-  Users, 
-  GraduationCap, 
-  BookOpen, 
-  IndianRupee, 
-  TrendingUp, 
+import {
+  Users,
+  GraduationCap,
+  BookOpen,
+  IndianRupee,
+  TrendingUp,
   AlertCircle,
   Plus,
   BookOpenCheck,
@@ -17,19 +17,22 @@ import {
   FolderDown,
   X,
   CheckCircle2,
-  DollarSign
+  DollarSign,
+  Clock,
+  Edit,
+  Trash2
 } from 'lucide-react';
-import { 
-  ResponsiveContainer, 
-  AreaChart, 
-  Area, 
-  XAxis, 
-  YAxis, 
-  CartesianGrid, 
-  Tooltip, 
-  BarChart, 
-  Bar, 
-  Legend 
+import {
+  ResponsiveContainer,
+  AreaChart,
+  Area,
+  XAxis,
+  YAxis,
+  CartesianGrid,
+  Tooltip,
+  BarChart,
+  Bar,
+  Legend
 } from 'recharts';
 import { studentService } from '../services/student.service';
 import { teacherService } from '../services/teacher.service';
@@ -39,6 +42,7 @@ import { noticeService } from '../services/notice.service';
 import useAuth from '../hooks/useAuth';
 import StudentDashboard from './StudentDashboard';
 import TeacherDashboard from './TeacherDashboard';
+import { timetableService } from '../services/timetable.service';
 
 const Dashboard = () => {
   const { user } = useAuth();
@@ -60,7 +64,10 @@ const Dashboard = () => {
   });
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
-  
+
+  const [timetable, setTimetable] = useState([]);
+  const [timetableForm, setTimetableForm] = useState({ id: '', classId: '', subject: '', day: 'Monday', timeStart: '', timeEnd: '', room: '' });
+
   // Lists for dropdown options
   const [teachersList, setTeachersList] = useState([]);
   const [classesList, setClassesList] = useState([]);
@@ -99,12 +106,13 @@ const Dashboard = () => {
     try {
       setLoading(true);
       setError('');
-      
-      const [studentRes, teacherRes, classRes, feeRes] = await Promise.all([
+
+      const [studentRes, teacherRes, classRes, feeRes, timetableRes] = await Promise.all([
         studentService.getAll({ limit: 1 }).catch(() => null),
         teacherService.getAll({ limit: 100 }).catch(() => null),
         classService.getAll({ limit: 100 }).catch(() => null),
         feeService.getAll({ limit: 100 }).catch(() => null),
+        timetableService.getAll({}).catch(() => null)
       ]);
 
       const studentsCount = studentRes?.pagination?.totalStudents || 0;
@@ -113,6 +121,11 @@ const Dashboard = () => {
 
       if (teacherRes?.teachers) setTeachersList(teacherRes.teachers);
       if (classRes?.classes) setClassesList(classRes.classes);
+
+      if (timetableRes) {
+        const today = new Date().toLocaleDateString('en-US', { weekday: 'long' });
+        setTimetable(timetableRes.filter(t => t.day === today));
+      }
 
       let revenue = 0;
       if (feeRes?.fees) {
@@ -221,7 +234,7 @@ const Dashboard = () => {
       const rollNum = Number(feeForm.studentRoll);
       const stuRes = await studentService.getAll({ limit: 100 });
       const matched = (stuRes?.students || []).find(s => Number(s.rollNumber) === rollNum);
-      
+
       if (!matched) {
         alert("Student Roll Number not found in system!");
         return;
@@ -283,6 +296,49 @@ const Dashboard = () => {
     }, 1800);
   };
 
+  const handleTimetableSubmit = async (e) => {
+    e.preventDefault();
+    try {
+      if (timetableForm.id) {
+        await timetableService.update(timetableForm.id, timetableForm);
+        setModalSuccess('Timetable updated successfully!');
+      } else {
+        await timetableService.create(timetableForm);
+        setModalSuccess('Timetable entry added successfully!');
+      }
+      setTimeout(() => {
+        setModalType(null);
+        setTimetableForm({ id: '', classId: '', subject: '', day: 'Monday', timeStart: '', timeEnd: '', room: '' });
+        fetchDashboardData();
+      }, 1500);
+    } catch (err) {
+      alert(err?.response?.data?.message || 'Failed to save timetable');
+    }
+  };
+
+  const handleDeleteTimetable = async (id) => {
+    if (!window.confirm("Are you sure you want to delete this timetable entry?")) return;
+    try {
+      await timetableService.delete(id);
+      setTimetable(prev => prev.filter(t => t._id !== id));
+    } catch (err) {
+      alert(err?.response?.data?.message || 'Failed to delete timetable entry');
+    }
+  };
+
+  const openEditTimetable = (slot) => {
+    setTimetableForm({
+      id: slot._id,
+      classId: slot.classId,
+      subject: slot.subject,
+      day: slot.day,
+      timeStart: slot.timeStart,
+      timeEnd: slot.timeEnd,
+      room: slot.room
+    });
+    setModalType('timetable');
+  };
+
   return (
     <div className="space-y-8 animate-fade-in text-left">
       {/* Header */}
@@ -337,7 +393,8 @@ const Dashboard = () => {
             { label: 'Create Notice', icon: Volume2, color: 'hover:border-rose-500 hover:text-rose-655 dark:hover:text-rose-400 bg-rose-500/5', type: 'notice' },
             { label: 'Schedule Exam', icon: Calendar, color: 'hover:border-teal-500 hover:text-teal-655 dark:hover:text-teal-400 bg-teal-500/5', type: 'exam' },
             { label: 'Generate Report', icon: FileText, color: 'hover:border-sky-500 hover:text-sky-655 dark:hover:text-sky-400 bg-sky-500/5', type: 'report' },
-            { label: 'Import Students', icon: Upload, color: 'hover:border-indigo-500 hover:text-indigo-655 dark:hover:text-indigo-400 bg-indigo-500/5', type: 'import' }
+            { label: 'Import Students', icon: Upload, color: 'hover:border-indigo-500 hover:text-indigo-655 dark:hover:text-indigo-400 bg-indigo-500/5', type: 'import' },
+            { label: 'Manage Timetable', icon: Clock, color: 'hover:border-blue-500 hover:text-blue-655 dark:hover:text-blue-400 bg-blue-500/5', type: 'timetable' }
           ].map((act, i) => {
             const Icon = act.icon;
             return (
@@ -369,14 +426,14 @@ const Dashboard = () => {
               <AreaChart data={enrollmentData} margin={{ top: 10, right: 10, left: -20, bottom: 0 }}>
                 <defs>
                   <linearGradient id="colorStudents" x1="0" y1="0" x2="0" y2="1">
-                    <stop offset="5%" stopColor="#38bdf8" stopOpacity={0.4}/>
-                    <stop offset="95%" stopColor="#38bdf8" stopOpacity={0}/>
+                    <stop offset="5%" stopColor="#38bdf8" stopOpacity={0.4} />
+                    <stop offset="95%" stopColor="#38bdf8" stopOpacity={0} />
                   </linearGradient>
                 </defs>
                 <CartesianGrid strokeDasharray="3 3" stroke="#1e293b" />
                 <XAxis dataKey="name" stroke="#64748b" fontSize={11} tickLine={false} />
                 <YAxis stroke="#64748b" fontSize={11} tickLine={false} />
-                <Tooltip 
+                <Tooltip
                   contentStyle={{ backgroundColor: '#0f172a', border: '1px solid #334155', borderRadius: '12px' }}
                   labelStyle={{ color: '#fff', fontWeight: 'bold' }}
                 />
@@ -398,7 +455,7 @@ const Dashboard = () => {
                 <CartesianGrid strokeDasharray="3 3" stroke="#1e293b" />
                 <XAxis dataKey="name" stroke="#64748b" fontSize={11} tickLine={false} />
                 <YAxis stroke="#64748b" fontSize={11} tickLine={false} />
-                <Tooltip 
+                <Tooltip
                   contentStyle={{ backgroundColor: '#0f172a', border: '1px solid #334155', borderRadius: '12px' }}
                 />
                 <Legend wrapperStyle={{ fontSize: '11px', paddingTop: '10px' }} />
@@ -410,11 +467,58 @@ const Dashboard = () => {
         </div>
       </div>
 
+      {/* Today's Timetable (Admin View) */}
+      <div className="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-3xl p-6 shadow-sm">
+        <div className="flex items-center justify-between mb-5 border-b border-slate-100 dark:border-slate-800 pb-3">
+          <div>
+            <h3 className="text-base font-bold text-slate-900 dark:text-white">Today's Timetable</h3>
+            <p className="text-xs text-slate-450 dark:text-slate-550 mt-0.5">Overview of scheduled classes across all sections</p>
+          </div>
+        </div>
+
+        <div className="space-y-3">
+          {timetable.map((slot) => {
+            const cls = classesList.find(c => c._id === slot.classId || c.id === slot.classId);
+            const classNameStr = cls ? (cls.className ? `${cls.className} ${cls.section || ''}` : cls.name) : 'Unknown Class';
+            return (
+              <div key={slot._id || slot.id} className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 p-4 rounded-2xl border border-slate-100 dark:border-slate-800/80 bg-slate-50/50 dark:bg-slate-950/20 hover:border-slate-200 dark:hover:border-slate-700 transition-all">
+                <div className="flex items-center gap-3">
+                  <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-blue-50 dark:bg-blue-950/40 text-blue-600 dark:text-blue-400 shrink-0">
+                    <Clock className="h-4.5 w-4.5" />
+                  </div>
+                  <div>
+                    <p className="text-xs font-bold text-slate-500 dark:text-slate-450">{slot.timeStart} - {slot.timeEnd}</p>
+                    <p className="text-sm font-black text-slate-800 dark:text-white mt-0.5">{slot.subject}</p>
+                  </div>
+                </div>
+                <div className="flex items-center gap-2">
+                  <span className="px-2.5 py-1 rounded-lg text-xs font-semibold bg-slate-200/60 dark:bg-slate-800 text-slate-700 dark:text-slate-300">
+                    {classNameStr}
+                  </span>
+                  <span className="px-2.5 py-1 rounded-lg text-xs font-semibold bg-blue-50 dark:bg-blue-950/40 text-blue-600 dark:text-blue-400">
+                    {slot.room}
+                  </span>
+                  <button onClick={() => openEditTimetable(slot)} className="p-1.5 rounded-lg text-slate-400 hover:text-blue-600 hover:bg-blue-50 transition-colors">
+                    <Edit className="h-4 w-4" />
+                  </button>
+                  <button onClick={() => handleDeleteTimetable(slot._id)} className="p-1.5 rounded-lg text-slate-400 hover:text-red-600 hover:bg-red-50 transition-colors">
+                    <Trash2 className="h-4 w-4" />
+                  </button>
+                </div>
+              </div>
+            );
+          })}
+          {timetable.length === 0 && (
+            <div className="text-center py-6 text-slate-500 text-sm">No classes scheduled for today.</div>
+          )}
+        </div>
+      </div>
+
       {/* ── MODALS (Administrator Quick Action Forms) ── */}
       {modalType && (
         <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-950/60 backdrop-blur-sm">
           <div className="w-full max-w-md bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-3xl p-6 shadow-2xl relative overflow-hidden animate-fade-in text-left">
-            <button 
+            <button
               onClick={() => setModalType(null)}
               className="absolute top-4 right-4 p-1 rounded-lg text-slate-450 hover:bg-slate-100 dark:hover:bg-slate-800 cursor-pointer"
             >
@@ -435,7 +539,7 @@ const Dashboard = () => {
                 {modalType === 'student' && (
                   <form onSubmit={handleStudentSubmit} className="space-y-3.5">
                     <h3 className="text-lg font-black text-slate-950 dark:text-white">Register Student</h3>
-                    
+
                     <div className="grid grid-cols-2 gap-3">
                       <div className="space-y-1">
                         <label className="text-[10px] font-bold text-slate-450 uppercase tracking-wider">Full Name</label>
@@ -657,7 +761,7 @@ const Dashboard = () => {
                   <div className="space-y-4">
                     <h3 className="text-lg font-black text-slate-950 dark:text-white">Generate Analytical Reports</h3>
                     <p className="text-xs text-slate-500 leading-relaxed">Download administrative records, fee audits, and grade metrics locally.</p>
-                    
+
                     <div className="space-y-2">
                       {[
                         { title: 'Academic Term Report Q1.pdf', size: '4.8 MB' },
@@ -691,6 +795,100 @@ const Dashboard = () => {
 
                     <button type="submit" className="w-full py-3 rounded-xl bg-blue-600 hover:bg-blue-700 text-xs font-bold text-white shadow-lg cursor-pointer">
                       Import Student Roster
+                    </button>
+                  </form>
+                )}
+
+                {/* 9. Manage Timetable Form */}
+                {modalType === 'timetable' && (
+                  <form onSubmit={handleTimetableSubmit} className="space-y-4">
+                    <h3 className="text-lg font-bold text-slate-950 dark:text-white">
+                      {timetableForm.id ? 'Edit Timetable Entry' : 'Add Timetable Entry'}
+                    </h3>
+
+                    <div className="space-y-1">
+                      <label className="text-xs font-bold text-slate-450 dark:text-slate-500 uppercase tracking-wide">Select Class</label>
+                      <select
+                        required
+                        value={timetableForm.classId}
+                        onChange={(e) => setTimetableForm({ ...timetableForm, classId: e.target.value })}
+                        className="w-full glass-input p-2.5 text-xs text-slate-800 dark:text-slate-200 bg-white dark:bg-slate-950"
+                      >
+                        <option value="">Choose Class Room</option>
+                        {classesList.map(c => (
+                          <option key={c._id || c.id} value={c._id || c.id}>
+                            {c.className ? `${c.className} ${c.section || ''}` : c.name}
+                          </option>
+                        ))}
+                      </select>
+                    </div>
+
+                    <div className="grid grid-cols-2 gap-3">
+                      <div className="space-y-1">
+                        <label className="text-xs font-bold text-slate-450 dark:text-slate-500 uppercase tracking-wide">Subject</label>
+                        <input
+                          required
+                          type="text"
+                          placeholder="e.g. Physics"
+                          value={timetableForm.subject}
+                          onChange={(e) => setTimetableForm({ ...timetableForm, subject: e.target.value })}
+                          className="w-full glass-input p-2.5 text-xs text-slate-850 dark:text-slate-200"
+                        />
+                      </div>
+                      <div className="space-y-1">
+                        <label className="text-xs font-bold text-slate-450 dark:text-slate-500 uppercase tracking-wide">Room</label>
+                        <input
+                          required
+                          type="text"
+                          placeholder="e.g. Lab 1"
+                          value={timetableForm.room}
+                          onChange={(e) => setTimetableForm({ ...timetableForm, room: e.target.value })}
+                          className="w-full glass-input p-2.5 text-xs text-slate-850 dark:text-slate-200"
+                        />
+                      </div>
+                    </div>
+
+                    <div className="space-y-1">
+                      <label className="text-xs font-bold text-slate-450 dark:text-slate-500 uppercase tracking-wide">Day</label>
+                      <select
+                        required
+                        value={timetableForm.day}
+                        onChange={(e) => setTimetableForm({ ...timetableForm, day: e.target.value })}
+                        className="w-full glass-input p-2.5 text-xs text-slate-800 dark:text-slate-200 bg-white dark:bg-slate-950"
+                      >
+                        {['Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday', 'Sunday'].map(d => (
+                          <option key={d} value={d}>{d}</option>
+                        ))}
+                      </select>
+                    </div>
+
+                    <div className="grid grid-cols-2 gap-3">
+                      <div className="space-y-1">
+                        <label className="text-xs font-bold text-slate-450 dark:text-slate-500 uppercase tracking-wide">Start Time</label>
+                        <input
+                          required
+                          type="text"
+                          placeholder="e.g. 09:00 AM"
+                          value={timetableForm.timeStart}
+                          onChange={(e) => setTimetableForm({ ...timetableForm, timeStart: e.target.value })}
+                          className="w-full glass-input p-2.5 text-xs text-slate-850 dark:text-slate-200"
+                        />
+                      </div>
+                      <div className="space-y-1">
+                        <label className="text-xs font-bold text-slate-450 dark:text-slate-500 uppercase tracking-wide">End Time</label>
+                        <input
+                          required
+                          type="text"
+                          placeholder="e.g. 10:00 AM"
+                          value={timetableForm.timeEnd}
+                          onChange={(e) => setTimetableForm({ ...timetableForm, timeEnd: e.target.value })}
+                          className="w-full glass-input p-2.5 text-xs text-slate-850 dark:text-slate-200"
+                        />
+                      </div>
+                    </div>
+
+                    <button type="submit" className="w-full py-3 rounded-xl bg-blue-600 hover:bg-blue-700 text-xs font-bold text-white shadow-lg shadow-blue-500/10 cursor-pointer">
+                      Save Timetable Entry
                     </button>
                   </form>
                 )}

@@ -33,4 +33,36 @@ const getTimetable = asyncHandler(async (req, res) => {
   return res.status(200).json(new ApiResponse(200, entries, "Timetable retrieved successfully"));
 });
 
-export { createTimetableEntry, getTimetable };
+const updateTimetableEntry = asyncHandler(async (req, res) => {
+  const { id } = req.params;
+  const { classId, subject, day, timeStart, timeEnd, room } = req.body || {};
+
+  const entry = await Timetable.findById(id);
+  if (!entry) {
+    throw new ApiError(404, "Timetable entry not found");
+  }
+
+  if (classId) entry.classId = classId;
+  if (subject) entry.subject = subject.trim();
+  if (day) entry.day = day;
+  if (timeStart) entry.timeStart = timeStart;
+  if (timeEnd) entry.timeEnd = timeEnd;
+  if (room) entry.room = room.trim();
+
+  await entry.save();
+
+  return res.status(200).json(new ApiResponse(200, entry, "Timetable entry updated successfully"));
+});
+
+const deleteTimetableEntry = asyncHandler(async (req, res) => {
+  const { id } = req.params;
+
+  const entry = await Timetable.findByIdAndDelete(id);
+  if (!entry) {
+    throw new ApiError(404, "Timetable entry not found");
+  }
+
+  return res.status(200).json(new ApiResponse(200, null, "Timetable entry deleted successfully"));
+});
+
+export { createTimetableEntry, getTimetable, updateTimetableEntry, deleteTimetableEntry };
