@@ -5,11 +5,11 @@ import { Fee } from "../models/fee.models.js";
 import { Student } from "../models/student.models.js";
 import mongoose from "mongoose";
 
-// Create Fee Record (Admin Only)
+
 const createFee = asyncHandler(async (req, res) => {
     const { student: studentId, amount, status, paymentDate } = req.body || {};
 
-    // check required fields
+    
     if (!studentId) {
         throw new ApiError(400, "Student ID is required");
     }
@@ -23,7 +23,7 @@ const createFee = asyncHandler(async (req, res) => {
         throw new ApiError(400, "Amount must be a positive number");
     }
 
-    // Validate student exists
+    
     if (!mongoose.Types.ObjectId.isValid(studentId)) {
         throw new ApiError(400, "Invalid Student ID format");
     }
