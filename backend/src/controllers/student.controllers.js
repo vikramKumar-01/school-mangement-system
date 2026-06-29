@@ -3,7 +3,7 @@ import { ApiError } from "../utils/ApiError.js";
 import { ApiResponse } from "../utils/ApiResponse.js";
 import { Student } from "../models/student.models.js";
 
-// Register Student
+
 const registerStudent = asyncHandler(async (req, res) => {
     const { name, class: className, rollNumber, fatherName, phone, address, admissionDate } = req.body || {};
 

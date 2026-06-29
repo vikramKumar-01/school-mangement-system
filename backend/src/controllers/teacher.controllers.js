@@ -3,11 +3,11 @@ import { ApiError } from "../utils/ApiError.js";
 import { ApiResponse } from "../utils/ApiResponse.js";
 import { Teacher } from "../models/teacher.models.js";
 
-// Register Teacher
+
 const registerTeacher = asyncHandler(async (req, res) => {
     const { name, subject, phone, email, salary } = req.body || {};
 
-    // check required fields
+    
     if (!name?.trim()) {
         throw new ApiError(400, "Name is required");
     }
