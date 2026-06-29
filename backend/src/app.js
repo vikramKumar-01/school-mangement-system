@@ -27,6 +27,9 @@ import noticeRouter from './routes/notice.routes.js'
 import marksRouter from './routes/marks.routes.js'
 import timetableRouter from './routes/timetable.routes.js'
 import studyMaterialRouter from './routes/studymaterial.routes.js'
+import settingsRouter from './routes/settings.routes.js'
+import holidayRouter from './routes/holiday.routes.js'
+import teacherAttendanceRouter from './routes/teacherAttendance.routes.js'
 
 // routes declaration
 app.use("/api/v1/users", userRouter);
@@ -41,6 +44,9 @@ app.use("/api/v1/notices", noticeRouter);
 app.use("/api/v1/marks", marksRouter);
 app.use("/api/v1/timetable", timetableRouter);
 app.use("/api/v1/study-materials", studyMaterialRouter);
+app.use("/api/v1/settings", settingsRouter);
+app.use("/api/v1/holidays", holidayRouter);
+app.use("/api/v1/teacher-attendance", teacherAttendanceRouter);
 
 app.use((err, req, res, next) => {
     const statusCode = err instanceof ApiError ? err.statusCode : 500;

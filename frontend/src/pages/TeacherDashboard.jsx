@@ -44,6 +44,8 @@ import { assignmentService } from '../services/assignment.service';
 import { marksService } from '../services/marks.service';
 import { studyMaterialService } from '../services/studymaterial.service';
 import { timetableService } from '../services/timetable.service';
+import TeacherGeolocationAttendance from '../components/TeacherGeolocationAttendance';
+
 const TeacherDashboard = () => {
   const { user } = useAuth();
 
@@ -373,6 +375,9 @@ const TeacherDashboard = () => {
           </div>
         </div>
       </div>
+
+      {/* ── Geolocation Attendance ── */}
+      <TeacherGeolocationAttendance />
 
       {/* ── Quick Action Buttons ── */}
       <div className="grid grid-cols-2 md:grid-cols-4 gap-4">

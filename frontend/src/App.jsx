@@ -18,6 +18,9 @@ import FeeList from './pages/FeeList';
 import AttendanceList from './pages/AttendanceList';
 import Profile from './pages/Profile';
 import ContactMessages from './pages/ContactMessages';
+import SchoolSettings from './pages/SchoolSettings';
+import HolidayManagement from './pages/HolidayManagement';
+import AdminTeacherAttendance from './pages/AdminTeacherAttendance';
 
 function App() {
   return (
@@ -93,6 +96,24 @@ function App() {
                 </RoleProtectedRoute>
               }
             />
+
+          {/* Admin Settings & Holidays */}
+          <Route path="settings" element={
+            <RoleProtectedRoute allowedRoles={['admin']}>
+              <SchoolSettings />
+            </RoleProtectedRoute>
+          } />
+          <Route path="holidays" element={
+            <RoleProtectedRoute allowedRoles={['admin']}>
+              <HolidayManagement />
+            </RoleProtectedRoute>
+          } />
+          <Route path="admin-attendance" element={
+            <RoleProtectedRoute allowedRoles={['admin']}>
+              <AdminTeacherAttendance />
+            </RoleProtectedRoute>
+          } />
+
           </Route>
 
           {/* Catch-all Fallback */}
