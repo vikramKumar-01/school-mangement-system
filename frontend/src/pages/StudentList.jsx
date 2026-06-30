@@ -96,11 +96,16 @@ const StudentList = () => {
     setStudentFees([]);
     setStudentAttendance([]);
     try {
-      const [marksData, feeData, attendanceData] = await Promise.all([
+      const [fullStudent, marksData, feeData, attendanceData] = await Promise.all([
+        studentService.getById(student._id).catch(() => null),
         marksService.getAll({ studentId: student._id }).catch(() => []),
         feeService.getAll({ studentId: student._id }).catch(() => null),
         attendanceService.getAll({ studentId: student._id }).catch(() => null)
       ]);
+      // Use the full record (with all fields) if available, otherwise fall back to list data
+      if (fullStudent) {
+        setSelectedStudent({ ...fullStudent, user: student.user });
+      }
       setStudentMarks(marksData || []);
       setStudentFees(feeData?.fees || feeData || []);
       setStudentAttendance(attendanceData?.attendance || attendanceData || []);
@@ -110,6 +115,7 @@ const StudentList = () => {
       setProfileLoading(false);
     }
   };
+
 
   const openAddModal = () => {
     setEditingStudent(null);
