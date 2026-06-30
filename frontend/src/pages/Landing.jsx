@@ -201,6 +201,13 @@ const Landing = () => {
               {theme === 'dark' ? <Sun className="h-4.5 w-4.5" /> : <Moon className="h-4.5 w-4.5" />}
             </button>
 
+            <Link 
+              to="/apply" 
+              className="px-4 py-2.5 rounded-xl border border-blue-600 dark:border-blue-500 text-sm font-bold text-blue-650 dark:text-sky-400 hover:bg-blue-50 dark:hover:bg-blue-950/30 transition-all active:scale-95 shrink-0"
+            >
+              Apply Admission
+            </Link>
+
             {isAuthenticated ? (
               <>
                 <span className="text-sm text-slate-500 dark:text-slate-400 font-medium">
@@ -288,6 +295,7 @@ const Landing = () => {
                 <a href="#gallery" onClick={() => setMobileMenuOpen(false)} className="block px-4 py-3 rounded-xl hover:bg-slate-50 dark:hover:bg-slate-800 hover:text-blue-600 transition-all">Gallery</a>
                 <a href="#testimonials" onClick={() => setMobileMenuOpen(false)} className="block px-4 py-3 rounded-xl hover:bg-slate-50 dark:hover:bg-slate-800 hover:text-blue-600 transition-all">Testimonials</a>
                 <a href="#contact" onClick={() => setMobileMenuOpen(false)} className="block px-4 py-3 rounded-xl hover:bg-slate-50 dark:hover:bg-slate-800 hover:text-blue-600 transition-all">Contact</a>
+                <Link to="/apply" onClick={() => setMobileMenuOpen(false)} className="block px-4 py-3 rounded-xl bg-blue-600/10 text-blue-600 dark:text-sky-400 font-bold transition-all border-l-2 border-blue-650 dark:border-sky-400">Apply Admission</Link>
               </nav>
 
               <div className="border-t border-slate-100 dark:border-slate-800 pt-6 space-y-3">

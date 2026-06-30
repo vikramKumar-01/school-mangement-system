@@ -228,6 +228,13 @@ const ApplyAdmission = () => {
               {theme === 'dark' ? <Sun className="h-4.5 w-4.5" /> : <Moon className="h-4.5 w-4.5" />}
             </button>
 
+            <Link 
+              to="/apply" 
+              className="px-4 py-2.5 rounded-xl border border-blue-600 dark:border-blue-500 text-sm font-bold text-blue-655 dark:text-sky-400 hover:bg-blue-50 dark:hover:bg-blue-950/30 transition-all active:scale-95 shrink-0"
+            >
+              Apply Admission
+            </Link>
+
             {isAuthenticated ? (
               <>
                 <span className="text-sm text-slate-500 dark:text-slate-400 font-medium">
@@ -313,7 +320,7 @@ const ApplyAdmission = () => {
                 <a href="/#gallery" onClick={() => setMobileMenuOpen(false)} className="text-slate-700 dark:text-slate-300 hover:text-blue-600">Gallery</a>
                 <a href="/#testimonials" onClick={() => setMobileMenuOpen(false)} className="text-slate-700 dark:text-slate-300 hover:text-blue-600">Testimonials</a>
                 <a href="/#contact" onClick={() => setMobileMenuOpen(false)} className="text-slate-700 dark:text-slate-300 hover:text-blue-600">Contact</a>
-                <Link to="/apply" onClick={() => setMobileMenuOpen(false)} className="text-blue-650">Apply Online</Link>
+                <Link to="/apply" onClick={() => setMobileMenuOpen(false)} className="block px-4 py-3 rounded-xl bg-blue-600/10 text-blue-600 dark:text-sky-400 font-bold transition-all border-l-2 border-blue-650 dark:border-sky-400">Apply Admission</Link>
 
                 <div className="pt-4 border-t border-slate-100 dark:border-slate-800 flex flex-col gap-2">
                   {isAuthenticated ? (
