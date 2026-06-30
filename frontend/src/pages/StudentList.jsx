@@ -666,6 +666,11 @@ const StudentList = () => {
                   <div className="flex flex-wrap gap-2 sm:gap-3 text-sm mt-2">
                     <span className="font-mono bg-slate-800 px-2 sm:px-3 py-1 rounded-full text-xs text-slate-300">Roll: {selectedStudent.rollNumber}</span>
                     <span className="bg-sky-500/10 text-sky-400 px-2 sm:px-3 py-1 rounded-full text-xs font-semibold">Class {selectedStudent.class}</span>
+                    {selectedStudent.user?.userId && (
+                      <span className="font-mono bg-slate-800 px-2 sm:px-3 py-1 rounded-full text-xs text-sky-300 border border-sky-500/20">
+                        ID: {selectedStudent.user.userId}
+                      </span>
+                    )}
                   </div>
                 </div>
               </div>
@@ -694,6 +699,12 @@ const StudentList = () => {
                     <User className="h-4 w-4" /> Personal Details
                   </h4>
                   <div className="bg-slate-800/30 p-5 rounded-2xl border border-slate-800/50 space-y-4 text-sm">
+                    <div className="flex justify-between items-center">
+                      <span className="text-slate-500 font-medium">User ID</span>
+                      <span className="font-bold font-mono text-sky-400 text-right bg-sky-500/10 px-2.5 py-1 rounded-lg text-xs">
+                        {selectedStudent.user?.userId || '—'}
+                      </span>
+                    </div>
                     <div className="flex justify-between items-center">
                       <span className="text-slate-500 font-medium">Father's Name</span>
                       <span className="font-bold text-white text-right">{selectedStudent.fatherName || '-'}</span>

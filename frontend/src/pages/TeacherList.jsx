@@ -597,6 +597,11 @@ const TeacherList = () => {
                     <span className="bg-indigo-500/10 text-indigo-400 px-2 sm:px-3 py-1 rounded-full text-xs font-semibold">
                       {selectedTeacher.subject || 'Faculty'}
                     </span>
+                    {selectedTeacher.user?.userId && (
+                      <span className="font-mono bg-slate-800 px-2 sm:px-3 py-1 rounded-full text-xs text-indigo-300 border border-indigo-500/20">
+                        ID: {selectedTeacher.user.userId}
+                      </span>
+                    )}
                   </div>
                 </div>
               </div>
@@ -625,6 +630,12 @@ const TeacherList = () => {
                     <User className="h-4 w-4" /> Personal Details
                   </h4>
                   <div className="bg-slate-800/30 p-5 rounded-2xl border border-slate-800/50 space-y-4 text-sm">
+                    <div className="flex justify-between items-center">
+                      <span className="text-slate-500 font-medium">User ID</span>
+                      <span className="font-bold font-mono text-indigo-400 text-right bg-indigo-500/10 px-2.5 py-1 rounded-lg text-xs">
+                        {selectedTeacher.user?.userId || '—'}
+                      </span>
+                    </div>
                     <div className="flex justify-between items-center">
                       <span className="text-slate-500 font-medium">Email</span>
                       <span className="font-bold text-white text-right"><a href={`mailto:${selectedTeacher.email}`} className="hover:underline">{selectedTeacher.email}</a></span>
