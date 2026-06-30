@@ -206,10 +206,12 @@ const TeacherPermissions = () => {
                   return (
                     <tr key={teacher._id} className="hover:bg-slate-850 transition-colors">
                       <td className="px-6 py-4">
-                        <p className="font-bold text-white leading-tight">{teacher.name}</p>
-                        <p className="text-xs text-slate-500 font-mono mt-0.5">{teacher.subject || 'N/A'}</p>
+                        <div className="flex flex-wrap items-center gap-2">
+                          <span className="font-bold text-white leading-tight">{teacher.name}</span>
+                          <span className="text-[10px] font-mono text-sky-400 bg-sky-500/10 px-2 py-0.5 rounded-full font-bold">ID: {teacher.user?.userId || 'N/A'}</span>
+                          <span className="text-xs text-slate-500 font-semibold">({teacher.subject || 'N/A'})</span>
+                        </div>
                       </td>
-
                       {/* Attendance Toggle */}
                       <td className="px-6 py-4 text-center">
                         <button

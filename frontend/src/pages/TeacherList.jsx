@@ -94,6 +94,7 @@ const TeacherList = () => {
     setEditingTeacher(t);
     formik.setValues({
       name: t.name,
+      gender: t.gender || '',
       subject: t.subject || '',
       email: t.email,
       phone: t.phone || '',

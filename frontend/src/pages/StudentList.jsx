@@ -144,6 +144,7 @@ const StudentList = () => {
       name: std.name,
       class: std.class,
       rollNumber: std.rollNumber,
+      gender: std.gender || '',
       fatherName: std.fatherName || '',
       phone: std.phone || '',
       address: std.address || '',
