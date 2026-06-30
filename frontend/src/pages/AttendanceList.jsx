@@ -17,7 +17,7 @@ const AttendanceList = () => {
   const [successMsg, setSuccessMsg] = useState('');
 
   // Date and Status Filters
-  const [selectedDate, setSelectedDate] = useState(new Date().toISOString().split('T')[0]);
+  const [selectedDate, setSelectedDate] = useState(new Date().toLocaleDateString('en-CA'));
   const [statusFilter, setStatusFilter] = useState('');
   const [page, setPage] = useState(1);
   const [totalPages, setTotalPages] = useState(1);
@@ -60,7 +60,7 @@ const AttendanceList = () => {
 
   const fetchStudentsList = async () => {
     try {
-      const res = await studentService.getAll({ limit: 100 });
+      const res = await studentService.getAll({ limit: 1000 });
       setStudents(res.students);
     } catch (err) {
       console.error('Failed to load students for attendance marking:', err);
@@ -110,7 +110,7 @@ const AttendanceList = () => {
   const formik = useFormik({
     initialValues: {
       student: '',
-      date: new Date().toISOString().split('T')[0],
+      date: new Date().toLocaleDateString('en-CA'),
       status: 'Present',
     },
     validationSchema: attendanceSchema,

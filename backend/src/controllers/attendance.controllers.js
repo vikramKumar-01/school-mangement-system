@@ -87,7 +87,19 @@ const getAttendanceById = asyncHandler(async (req, res) => {
 
     // If role is student or parent, restrict access to their own attendance records
     if (req.user.role === "student" || req.user.role === "parent") {
-        const student = await Student.findOne({ name: req.user.fullName });
+        let student;
+        if (req.user.role === "student") {
+            student = await Student.findOne({ user: req.user._id });
+            if (!student) {
+                student = await Student.findOne({ name: req.user.fullName });
+            }
+        } else if (req.user.role === "parent") {
+            student = await Student.findOne({ fatherName: req.user.fullName });
+            if (!student) {
+                student = await Student.findOne({ user: req.user._id });
+            }
+        }
+
         if (!student || attendanceObj.student?._id.toString() !== student._id.toString()) {
             throw new ApiError(403, "You are not authorized to view this attendance record");
         }
@@ -123,7 +135,19 @@ const getAllAttendance = asyncHandler(async (req, res) => {
 
     // Role-based filtering
     if (req.user.role === "student" || req.user.role === "parent") {
-        const student = await Student.findOne({ name: req.user.fullName });
+        let student;
+        if (req.user.role === "student") {
+            student = await Student.findOne({ user: req.user._id });
+            if (!student) {
+                student = await Student.findOne({ name: req.user.fullName });
+            }
+        } else if (req.user.role === "parent") {
+            student = await Student.findOne({ fatherName: req.user.fullName });
+            if (!student) {
+                student = await Student.findOne({ user: req.user._id });
+            }
+        }
+
         if (!student) {
             // Student record not found, return empty list
             return res.status(200).json(

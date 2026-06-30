@@ -170,18 +170,37 @@ const TeacherDashboard = () => {
         return;
       }
 
-      const stuRes = await studentService.getAll({ limit: 100 });
-      const matchedStudent = (stuRes?.students || []).find(s => Number(s.rollNumber) === rollNum);
+      // Find the matched class from teacher's list
+      const matchedClass = (classesList || []).find(
+        c => (c._id || c.id) === attendanceForm.classId
+      );
 
-      if (!matchedStudent) {
-        alert("No student found with Roll Number: " + rollNum);
+      if (!matchedClass) {
+        alert("Please select a valid classroom");
         return;
       }
+
+      // Fetch students belonging strictly to the selected class section
+      const stuRes = await studentService.getAll({ 
+        class: matchedClass.className, 
+        limit: 1000 
+      });
+      const matchedStudent = (stuRes?.students || []).find(
+        s => Number(s.rollNumber) === rollNum
+      );
+
+      if (!matchedStudent) {
+        alert(`No student found with Roll Number: ${rollNum} in Class ${matchedClass.className}`);
+        return;
+      }
+
+      // Send local timezone-accurate date string to avoid midnight offsets
+      const localDateStr = new Date().toLocaleDateString('en-CA');
 
       await attendanceService.create({
         student: matchedStudent._id,
         status: attendanceForm.status,
-        date: new Date()
+        date: localDateStr
       });
 
       setModalSuccess('Attendance logged successfully!');

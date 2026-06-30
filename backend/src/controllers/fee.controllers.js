@@ -71,9 +71,21 @@ const getFeeById = asyncHandler(async (req, res) => {
         throw new ApiError(404, "Fee record not found");
     }
 
-    // If role is student, they can only view if it is their fee record
-    if (req.user.role === "student") {
-        const student = await Student.findOne({ name: req.user.fullName });
+    // If role is student or parent, they can only view if it is their fee record
+    if (req.user.role === "student" || req.user.role === "parent") {
+        let student;
+        if (req.user.role === "student") {
+            student = await Student.findOne({ user: req.user._id });
+            if (!student) {
+                student = await Student.findOne({ name: req.user.fullName });
+            }
+        } else if (req.user.role === "parent") {
+            student = await Student.findOne({ fatherName: req.user.fullName });
+            if (!student) {
+                student = await Student.findOne({ user: req.user._id });
+            }
+        }
+
         if (!student || feeObj.student?._id.toString() !== student._id.toString()) {
             throw new ApiError(403, "You are not authorized to view this fee record");
         }
@@ -96,8 +108,20 @@ const getAllFees = asyncHandler(async (req, res) => {
     }
 
     // Role-based filtering
-    if (req.user.role === "student") {
-        const student = await Student.findOne({ name: req.user.fullName });
+    if (req.user.role === "student" || req.user.role === "parent") {
+        let student;
+        if (req.user.role === "student") {
+            student = await Student.findOne({ user: req.user._id });
+            if (!student) {
+                student = await Student.findOne({ name: req.user.fullName });
+            }
+        } else if (req.user.role === "parent") {
+            student = await Student.findOne({ fatherName: req.user.fullName });
+            if (!student) {
+                student = await Student.findOne({ user: req.user._id });
+            }
+        }
+
         if (!student) {
             // Student record not found, return empty array
             return res.status(200).json(

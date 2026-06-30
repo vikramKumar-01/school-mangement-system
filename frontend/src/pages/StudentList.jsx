@@ -187,7 +187,7 @@ const StudentList = () => {
           <h1 className="text-3xl font-bold tracking-tight text-white">Students</h1>
           <p className="mt-1 text-sm text-slate-400">View and manage student profile records.</p>
         </div>
-        {canModify && (
+        {isAdmin && (
           <button
             onClick={openAddModal}
             className="inline-flex items-center justify-center gap-2 rounded-xl bg-sky-500 hover:bg-sky-600 px-4 py-2.5 text-sm font-semibold text-white transition-all active:scale-95 shadow-md shadow-sky-500/10 min-h-[44px]"
