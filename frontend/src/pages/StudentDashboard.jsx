@@ -17,6 +17,7 @@ import { noticeService } from '../services/notice.service';
 import { marksService } from '../services/marks.service';
 import { timetableService } from '../services/timetable.service';
 import { studyMaterialService } from '../services/studymaterial.service';
+import { teacherService } from '../services/teacher.service';
 
 const StudentDashboard = () => {
   const { user } = useAuth();
@@ -33,6 +34,7 @@ const StudentDashboard = () => {
   const [marks, setMarks] = useState([]);
   const [timetable, setTimetable] = useState([]);
   const [studyMaterials, setStudyMaterials] = useState([]);
+  const [teachers, setTeachers] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
 
@@ -65,7 +67,7 @@ const StudentDashboard = () => {
         const actualClassId = matchedClassObj?._id || className;
 
         // 2. Load other dynamic services in parallel
-        const [feeRes, attRes, assignRes, noticeRes, marksRes, timetableRes, matRes] = await Promise.all([
+        const [feeRes, attRes, assignRes, noticeRes, marksRes, timetableRes, matRes, teacherRes] = await Promise.all([
           feeService.getAll(studentId ? { studentId } : {}).catch(() => null),
           attendanceService.getAll(studentId ? { studentId } : {}).catch(() => null),
           assignmentService.getAll(actualClassId ? { classId: actualClassId } : {}).catch(() => null),
@@ -73,6 +75,7 @@ const StudentDashboard = () => {
           marksService.getAll(studentId ? { studentId } : {}).catch(() => null),
           timetableService.getAll(actualClassId ? { classId: actualClassId } : {}).catch(() => null),
           studyMaterialService.getAll(actualClassId ? { classId: actualClassId } : {}).catch(() => null),
+          teacherService.getAll({ limit: 50 }).catch(() => null),
         ]);
 
         if (feeRes?.fees) setFees(feeRes.fees);
@@ -82,6 +85,7 @@ const StudentDashboard = () => {
         if (marksRes) setMarks(marksRes);
         if (timetableRes) setTimetable(timetableRes);
         if (matRes) setStudyMaterials(matRes);
+        if (teacherRes?.teachers) setTeachers(teacherRes.teachers);
 
       } catch (err) {
         console.error('StudentDashboard loader error:', err);
@@ -132,12 +136,18 @@ const StudentDashboard = () => {
     { _id: '3', subject: 'Chemistry', timeStart: '11:30 AM', timeEnd: '12:30 PM', room: 'Room 204', day: 'Monday' }
   ];
 
-  // Subjects and Teachers mock info
-  const subjectsAndTeachers = [
-    { subject: 'Mathematics', teacher: 'Dr. Sarah Connor', qual: 'Ph.D. Pure Math' },
-    { subject: 'Physics', teacher: 'Prof. Richard Feynman', qual: 'Nobel Laureate' },
-    { subject: 'Chemistry', teacher: 'Dr. Bruce Banner', qual: 'M.Sc. Organic Chemistry' }
-  ];
+  // Subjects and Teachers — built dynamically from real teacher records
+  const subjectsAndTeachers = teachers.length > 0
+    ? teachers.filter(t => t.subject).map(t => ({
+        subject: t.subject,
+        teacher: t.name,
+        qual: t.email || ''
+      }))
+    : [
+        { subject: 'Mathematics', teacher: '—', qual: '' },
+        { subject: 'Physics', teacher: '—', qual: '' },
+        { subject: 'Chemistry', teacher: '—', qual: '' }
+      ];
 
   // Fallbacks for study materials
   const displayStudyMaterials = studyMaterials.length > 0 ? studyMaterials : [
@@ -491,29 +501,36 @@ const StudentDashboard = () => {
           
           {/* Pay Fee modal popup trigger inside page */}
           {payFeeItem && (
-            <div className="bg-blue-600 text-white rounded-3xl p-6 relative overflow-hidden shadow-xl shadow-blue-500/20">
-              <div className="absolute top-0 right-0 h-32 w-32 bg-white/5 rounded-full translate-x-10 -translate-y-10 blur-xl"></div>
-              <div className="relative z-10 space-y-4">
+            <div className="bg-gradient-to-br from-blue-600 to-blue-700 text-white rounded-3xl p-6 relative overflow-hidden shadow-xl shadow-blue-500/30 border border-blue-500/30">
+              <div className="absolute top-0 right-0 h-40 w-40 bg-white/5 rounded-full translate-x-12 -translate-y-12 blur-2xl pointer-events-none"></div>
+              <div className="absolute bottom-0 left-0 h-24 w-24 bg-blue-400/10 rounded-full -translate-x-8 translate-y-8 blur-xl pointer-events-none"></div>
+              <div className="relative z-10 space-y-5">
                 <div>
-                  <span className="text-xs font-bold uppercase bg-white/20 px-2.5 py-1 rounded-full">Secure Payment</span>
-                  <h3 className="text-lg font-black mt-2">Pay Due Invoice: {payFeeItem.feeType}</h3>
+                  <span className="text-[10px] font-bold uppercase tracking-widest bg-white/15 border border-white/20 px-3 py-1 rounded-full">🔒 Secure Payment</span>
+                  <h3 className="text-base font-black mt-3 leading-snug">Pay Due Invoice: {payFeeItem.feeType}</h3>
                 </div>
-                <div className="flex justify-between items-center border-t border-white/20 pt-4">
+                <div className="flex flex-col sm:flex-row justify-between sm:items-center gap-4 border-t border-white/20 pt-4">
                   <div>
-                    <p className="text-xs opacity-75">Payable Amount</p>
-                    <p className="text-2xl font-black">₹{payFeeItem.amount.toLocaleString('en-IN')}</p>
+                    <p className="text-xs text-white/70 font-semibold">Payable Amount</p>
+                    <p className="text-2xl font-black tracking-tight mt-0.5">₹{payFeeItem.amount?.toLocaleString('en-IN')}</p>
                   </div>
-                  <div className="flex gap-2">
-                    <button onClick={() => setPayFeeItem(null)} className="px-4 py-2 text-xs font-bold bg-white/10 hover:bg-white/20 rounded-xl transition-all cursor-pointer">
+                  <div className="flex gap-2.5">
+                    <button
+                      onClick={() => setPayFeeItem(null)}
+                      className="px-4 py-2.5 text-xs font-bold bg-white/10 hover:bg-white/20 border border-white/20 text-white rounded-xl transition-all cursor-pointer"
+                    >
                       Cancel
                     </button>
-                    <button onClick={executePayment} className="px-5 py-2 text-xs font-bold bg-white text-blue-605 rounded-xl shadow-lg hover:bg-slate-50 transition-all cursor-pointer">
-                      Authorize Payment
+                    <button
+                      onClick={executePayment}
+                      className="px-5 py-2.5 text-xs font-bold bg-white text-blue-700 hover:bg-blue-50 rounded-xl shadow-lg shadow-blue-900/30 transition-all cursor-pointer"
+                    >
+                      ✓ Authorize Payment
                     </button>
                   </div>
                 </div>
                 {paymentSuccess && (
-                  <p className="text-xs font-bold bg-emerald-500 text-white p-2.5 rounded-xl flex items-center gap-1.5 border border-emerald-400">
+                  <p className="text-xs font-bold bg-emerald-500/90 text-white p-3 rounded-xl flex items-center gap-2 border border-emerald-400/50">
                     <CheckCircle2 className="h-4 w-4 shrink-0" />
                     {paymentSuccess}
                   </p>
