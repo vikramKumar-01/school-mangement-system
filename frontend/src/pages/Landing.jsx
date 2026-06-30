@@ -817,7 +817,7 @@ const Landing = () => {
               ) : (
                 <>
                   <Link
-                    to="/register"
+                    to="/apply"
                     className="rounded-xl bg-white text-blue-600 font-bold px-6 py-3 text-sm hover:bg-slate-100 transition-all shadow-md active:scale-95 min-h-[44px]"
                   >
                     Apply Online Now
@@ -858,7 +858,7 @@ const Landing = () => {
                   <div>
                     <h4 className="text-sm font-bold text-slate-900 dark:text-white">Academy Address</h4>
                     <p className="text-xs text-slate-500 dark:text-slate-400 leading-relaxed mt-1">
-                      123 Academic Boulevard, Science Park Sector-IV, CA 94016
+                      Darbhanga, Bihar — 846001, India
                     </p>
                   </div>
                 </div>
@@ -903,21 +903,36 @@ const Landing = () => {
                 </div>
               </div>
 
-              {/* Google Map Mockup */}
-              <div className="h-44 w-full rounded-2xl overflow-hidden bg-slate-100 dark:bg-slate-900 border border-slate-200 dark:border-slate-800 flex items-center justify-center relative group">
-                <MapPin className="h-10 w-10 text-slate-400 absolute animate-bounce" />
-                <img 
-                  src="https://images.unsplash.com/photo-1524661135-423995f22d0b?auto=format&fit=crop&q=80&w=400" 
-                  alt="Apex Academy Map Location Coordinates Placeholder" 
-                  className="h-full w-full object-cover opacity-60 group-hover:scale-102 transition-transform duration-350"
+              {/* Interactive Map — OpenStreetMap (no API key required) */}
+              <div className="relative h-52 w-full rounded-2xl overflow-hidden border border-slate-200 dark:border-slate-800 shadow-sm group">
+                <iframe
+                  title="Apex Academy Location — Darbhanga, Bihar"
+                  width="100%"
+                  height="100%"
                   loading="lazy"
+                  allowFullScreen
+                  referrerPolicy="no-referrer-when-downgrade"
+                  src="https://www.openstreetmap.org/export/embed.html?bbox=85.8618%2C26.1242%2C85.9218%2C26.1842&layer=mapnik&marker=26.1542%2C85.8918"
+                  className="w-full h-full border-0"
+                  style={{ filter: 'hue-rotate(200deg) saturate(0.7) brightness(0.95)' }}
                 />
+                {/* "Open in Maps" overlay button */}
+                <a
+                  href="https://www.openstreetmap.org/?mlat=26.1542&mlon=85.8918#map=14/26.1542/85.8918"
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="absolute bottom-2 right-2 flex items-center gap-1.5 bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-700 text-[10px] font-bold text-slate-600 dark:text-slate-300 px-2.5 py-1.5 rounded-lg shadow-md hover:bg-blue-50 dark:hover:bg-slate-800 transition-colors opacity-0 group-hover:opacity-100 duration-200"
+                >
+                  <MapPin className="h-3 w-3 text-blue-500" />
+                  Open in Maps
+                </a>
               </div>
+
             </div>
 
             {/* Contact Form */}
             <div className="lg:col-span-7">
-              <div className="bg-slate-55 dark:bg-slate-900/40 border border-slate-200 dark:border-slate-800 rounded-3xl p-6 sm:p-8">
+              <div className="bg-white dark:bg-slate-900/60 border border-slate-200 dark:border-slate-800 rounded-3xl p-6 sm:p-8">
                 {contactSuccess && (
                   <div className="mb-6 flex items-center gap-3 rounded-xl bg-emerald-500/10 border border-emerald-500/20 p-4 text-sm text-emerald-600 dark:text-emerald-400">
                     <Check className="h-5 w-5 shrink-0" />
@@ -942,7 +957,7 @@ const Landing = () => {
                       id="name"
                       name="name"
                       type="text"
-                      className="w-full bg-white dark:bg-slate-950 border border-slate-205 dark:border-slate-800 rounded-xl px-4 py-3 text-slate-800 dark:text-slate-100 placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-blue-500/30 focus:border-blue-500 transition-all text-sm"
+                      className="w-full bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-xl px-4 py-3 text-slate-900 dark:text-white placeholder-slate-400 dark:placeholder-slate-500 focus:outline-none focus:ring-2 focus:ring-blue-500/30 focus:border-blue-500 transition-all text-sm"
                       placeholder="Full name"
                       value={contactForm.values.name}
                       onChange={contactForm.handleChange}
@@ -962,7 +977,7 @@ const Landing = () => {
                       id="email"
                       name="email"
                       type="email"
-                      className="w-full bg-white dark:bg-slate-955 border border-slate-200 dark:border-slate-800 rounded-xl px-4 py-3 text-slate-800 dark:text-slate-100 placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-blue-500/30 focus:border-blue-500 transition-all text-sm"
+                      className="w-full bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-xl px-4 py-3 text-slate-900 dark:text-white placeholder-slate-400 dark:placeholder-slate-500 focus:outline-none focus:ring-2 focus:ring-blue-500/30 focus:border-blue-500 transition-all text-sm"
                       placeholder="Email Address"
                       value={contactForm.values.email}
                       onChange={contactForm.handleChange}
@@ -982,7 +997,7 @@ const Landing = () => {
                       id="subject"
                       name="subject"
                       type="text"
-                      className="w-full bg-white dark:bg-slate-950 border border-slate-200 dark:border-slate-800 rounded-xl px-4 py-3 text-slate-800 dark:text-slate-100 placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-blue-500/30 focus:border-blue-500 transition-all text-sm"
+                      className="w-full bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-xl px-4 py-3 text-slate-900 dark:text-white placeholder-slate-400 dark:placeholder-slate-500 focus:outline-none focus:ring-2 focus:ring-blue-500/30 focus:border-blue-500 transition-all text-sm"
                       placeholder="e.g. Admission Inquiry"
                       value={contactForm.values.subject}
                       onChange={contactForm.handleChange}
@@ -1002,7 +1017,7 @@ const Landing = () => {
                       id="message"
                       name="message"
                       rows="4"
-                      className="w-full bg-white dark:bg-slate-955 border border-slate-200 dark:border-slate-800 rounded-xl px-4 py-3 text-slate-800 dark:text-slate-100 placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-blue-500/30 focus:border-blue-500 transition-all text-sm resize-none"
+                      className="w-full bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-xl px-4 py-3 text-slate-900 dark:text-white placeholder-slate-400 dark:placeholder-slate-500 focus:outline-none focus:ring-2 focus:ring-blue-500/30 focus:border-blue-500 transition-all text-sm resize-none"
                       placeholder="Please write down your questions or details..."
                       value={contactForm.values.message}
                       onChange={contactForm.handleChange}
@@ -1072,7 +1087,7 @@ const Landing = () => {
                 <Link to="/login" className="hover:text-blue-400 transition-colors">Student Log-In</Link>
                 <Link to="/login" className="hover:text-blue-400 transition-colors">Teacher Workspace</Link>
                 <Link to="/login" className="hover:text-blue-400 transition-colors">Parent Viewport</Link>
-                <Link to="/register" className="hover:text-blue-400 transition-colors">New Admissions Registration</Link>
+                <Link to="/apply" className="hover:text-blue-400 transition-colors">New Admissions Registration</Link>
               </nav>
             </div>
 
@@ -1080,8 +1095,8 @@ const Landing = () => {
             <div className="lg:col-span-3 space-y-4">
               <h4 className="text-sm font-bold text-white uppercase tracking-wider">Contact Info</h4>
               <p className="text-xs leading-relaxed text-slate-405">
-                123 Academic Blvd, CA 94016<br/>
-                Office Phone: +1 (555) 019-9823<br/>
+                Darbhanga, Bihar — 846001, India<br/>
+                Office Phone: +91 9876-543-210<br/>
                 Email: info@apex.edu
               </p>
             </div>

@@ -21,6 +21,7 @@ import {
   ChevronRight,
   MessageSquare,
   FileText,
+  ClipboardList,
   AlertTriangle
 } from 'lucide-react';
 
@@ -62,6 +63,7 @@ const MainLayout = () => {
     { name: 'Student Attendance', path: '/dashboard/attendance', icon: CalendarCheck, roles: ['admin', 'teacher', 'student', 'parent'] },
     { name: 'My Attendance', path: '/dashboard/my-attendance', icon: CalendarCheck, roles: ['teacher'] },
     { name: 'Messages', path: '/dashboard/messages', icon: MessageSquare, roles: ['admin'] },
+    { name: 'Admissions', path: '/dashboard/admissions', icon: ClipboardList, roles: ['admin'] },
     { name: 'Teacher Attendance', path: '/dashboard/admin-attendance', icon: CalendarCheck, roles: ['admin'] },
     { name: 'Holidays', path: '/dashboard/holidays', icon: BookOpen, roles: ['admin'] },
     { name: 'School Settings', path: '/dashboard/settings', icon: FileText, roles: ['admin'] },

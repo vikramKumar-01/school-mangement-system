@@ -22,6 +22,7 @@ import classRouter from './routes/class.routes.js'
 import feeRouter from './routes/fee.routes.js'
 import attendanceRouter from './routes/attendance.routes.js'
 import contactRouter from './routes/contact.routes.js'
+import admissionRouter from './routes/admission.routes.js'
 import assignmentRouter from './routes/assignment.routes.js'
 import noticeRouter from './routes/notice.routes.js'
 import marksRouter from './routes/marks.routes.js'
@@ -39,6 +40,7 @@ app.use("/api/v1/classes", classRouter);
 app.use("/api/v1/fees", feeRouter);
 app.use("/api/v1/attendance", attendanceRouter);
 app.use("/api/v1/contact", contactRouter);
+app.use("/api/v1/admissions", admissionRouter);
 app.use("/api/v1/assignments", assignmentRouter);
 app.use("/api/v1/notices", noticeRouter);
 app.use("/api/v1/marks", marksRouter);

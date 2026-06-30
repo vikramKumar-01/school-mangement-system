@@ -8,6 +8,7 @@ import RoleProtectedRoute from './components/RoleProtectedRoute';
 
 // Pages
 import Landing from './pages/Landing';
+import ApplyAdmission from './pages/ApplyAdmission';
 import Login from './pages/Login';
 import Dashboard from './pages/Dashboard';
 import ClassList from './pages/ClassList';
@@ -17,6 +18,7 @@ import FeeList from './pages/FeeList';
 import AttendanceList from './pages/AttendanceList';
 import Profile from './pages/Profile';
 import ContactMessages from './pages/ContactMessages';
+import Admissions from './pages/Admissions';
 import SchoolSettings from './pages/SchoolSettings';
 import HolidayManagement from './pages/HolidayManagement';
 import AdminTeacherAttendance from './pages/AdminTeacherAttendance';
@@ -30,6 +32,7 @@ function App() {
         <Routes>
           {/* Public Landing Page */}
           <Route path="/" element={<Landing />} />
+          <Route path="/apply" element={<ApplyAdmission />} />
 
           {/* Auth Routes */}
           <Route element={<AuthLayout />}>
@@ -101,6 +104,15 @@ function App() {
               element={
                 <RoleProtectedRoute allowedRoles={['admin']}>
                   <ContactMessages />
+                </RoleProtectedRoute>
+              }
+            />
+            
+            <Route
+              path="admissions"
+              element={
+                <RoleProtectedRoute allowedRoles={['admin']}>
+                  <Admissions />
                 </RoleProtectedRoute>
               }
             />
