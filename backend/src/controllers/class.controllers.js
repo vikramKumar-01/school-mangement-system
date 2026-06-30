@@ -7,6 +7,13 @@ import mongoose from "mongoose";
 
 // Create Class
 const createClass = asyncHandler(async (req, res) => {
+    if (req.user.role === "teacher") {
+        const teacher = await Teacher.findOne({ user: req.user._id });
+        if (!teacher || teacher.permissions?.manageClasses !== true) {
+            throw new ApiError(403, "You do not have permission to manage classes");
+        }
+    }
+
     const { className, section, classTeacher } = req.body || {};
 
     // check required fields
@@ -111,6 +118,13 @@ const getAllClasses = asyncHandler(async (req, res) => {
 
 // Update Class
 const updateClass = asyncHandler(async (req, res) => {
+    if (req.user.role === "teacher") {
+        const teacher = await Teacher.findOne({ user: req.user._id });
+        if (!teacher || teacher.permissions?.manageClasses !== true) {
+            throw new ApiError(403, "You do not have permission to manage classes");
+        }
+    }
+
     const { id } = req.params;
     const { className, section, classTeacher } = req.body || {};
 
@@ -177,6 +191,13 @@ const updateClass = asyncHandler(async (req, res) => {
 
 // Delete Class
 const deleteClass = asyncHandler(async (req, res) => {
+    if (req.user.role === "teacher") {
+        const teacher = await Teacher.findOne({ user: req.user._id });
+        if (!teacher || teacher.permissions?.manageClasses !== true) {
+            throw new ApiError(403, "You do not have permission to manage classes");
+        }
+    }
+
     const { id } = req.params;
 
     if (!mongoose.Types.ObjectId.isValid(id)) {

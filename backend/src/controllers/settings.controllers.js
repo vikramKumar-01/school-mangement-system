@@ -15,7 +15,8 @@ const initializeSettings = async () => {
             workingHours: 8,
             lateTime: "09:15 AM",
             defaultCheckInTime: "09:00 AM",
-            defaultCheckOutTime: "05:00 PM"
+            defaultCheckOutTime: "05:00 PM",
+            isAdmissionOpen: true
         });
     }
     return settings;
@@ -30,7 +31,7 @@ export const getSettings = asyncHandler(async (req, res) => {
 });
 
 export const updateSettings = asyncHandler(async (req, res) => {
-    const { schoolName, latitude, longitude, allowedRadius, workingHours, lateTime, defaultCheckInTime, defaultCheckOutTime } = req.body;
+    const { schoolName, latitude, longitude, allowedRadius, workingHours, lateTime, defaultCheckInTime, defaultCheckOutTime, isAdmissionOpen } = req.body;
 
     let settings = await SchoolSettings.findOne();
     if (!settings) {
@@ -45,6 +46,7 @@ export const updateSettings = asyncHandler(async (req, res) => {
     if (lateTime) settings.lateTime = lateTime;
     if (defaultCheckInTime) settings.defaultCheckInTime = defaultCheckInTime;
     if (defaultCheckOutTime) settings.defaultCheckOutTime = defaultCheckOutTime;
+    if (isAdmissionOpen !== undefined) settings.isAdmissionOpen = Boolean(isAdmissionOpen);
 
     await settings.save();
 

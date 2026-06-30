@@ -3,6 +3,7 @@ import { createPortal } from 'react-dom';
 import { useFormik } from 'formik';
 import { studentService } from '../services/student.service';
 import { classService } from '../services/class.service';
+import { teacherService } from '../services/teacher.service';
 import { studentSchema } from '../validations/student.validation';
 import useAuth from '../hooks/useAuth';
 import { Plus, Edit2, Trash2, Search, X, AlertCircle, Phone, Home, Calendar, User, Eye, FileText, CheckCircle, IndianRupee, CalendarCheck } from 'lucide-react';
@@ -12,8 +13,22 @@ import { attendanceService } from '../services/attendance.service';
 
 const StudentList = () => {
   const { user } = useAuth();
-  const canModify = ['admin', 'teacher'].includes(user?.role);
+  const [teacherPermissions, setTeacherPermissions] = useState(null);
+
+  useEffect(() => {
+    const fetchTeacherPerms = async () => {
+      if (user?.role === 'teacher') {
+        const res = await teacherService.getAll({ userId: user._id, limit: 1 }).catch(() => null);
+        const match = res?.teachers?.[0];
+        setTeacherPermissions(match?.permissions || null);
+      }
+    };
+    fetchTeacherPerms();
+  }, [user]);
+
   const isAdmin = user?.role === 'admin';
+  const canAddStudent = isAdmin || (user?.role === 'teacher' && teacherPermissions?.addStudent === true);
+  const canModify = isAdmin || (user?.role === 'teacher' && teacherPermissions?.editStudent === true);
 
   const [students, setStudents] = useState([]);
   const [classes, setClasses] = useState([]);
@@ -187,7 +202,7 @@ const StudentList = () => {
           <h1 className="text-3xl font-bold tracking-tight text-white">Students</h1>
           <p className="mt-1 text-sm text-slate-400">View and manage student profile records.</p>
         </div>
-        {isAdmin && (
+        {canAddStudent && (
           <button
             onClick={openAddModal}
             className="inline-flex items-center justify-center gap-2 rounded-xl bg-sky-500 hover:bg-sky-600 px-4 py-2.5 text-sm font-semibold text-white transition-all active:scale-95 shadow-md shadow-sky-500/10 min-h-[44px]"

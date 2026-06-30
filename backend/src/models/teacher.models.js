@@ -29,6 +29,16 @@ const teacherSchema = new mongoose.Schema({
     user: {
         type: mongoose.Schema.Types.ObjectId,
         ref: 'User'
+    },
+    permissions: {
+        markAttendance: { type: Boolean, default: true },
+        addStudent: { type: Boolean, default: false },
+        editStudent: { type: Boolean, default: false },
+        manageClasses: { type: Boolean, default: false },
+        createAssignment: { type: Boolean, default: true },
+        logMarks: { type: Boolean, default: true },
+        postNotice: { type: Boolean, default: true },
+        academicProgress: { type: Boolean, default: true }
     }
 },{timestamps: true})
 

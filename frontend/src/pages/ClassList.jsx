@@ -9,6 +9,21 @@ import { Plus, Edit2, Trash2, Search, X, AlertCircle } from 'lucide-react';
 const ClassList = () => {
   const { user } = useAuth();
   const isAdmin = user?.role === 'admin';
+  const [teacherPermissions, setTeacherPermissions] = useState(null);
+
+  useEffect(() => {
+    const fetchTeacherPerms = async () => {
+      if (user?.role === 'teacher') {
+        const res = await teacherService.getAll({ userId: user._id, limit: 1 }).catch(() => null);
+        const match = res?.teachers?.[0];
+        setTeacherPermissions(match?.permissions || null);
+      }
+    };
+    fetchTeacherPerms();
+  }, [user]);
+
+  const canView = isAdmin || (user?.role === 'teacher' && teacherPermissions?.manageClasses === true);
+  const canModify = canView; // Teachers with view classes permissions can modify classes
 
   const [classes, setClasses] = useState([]);
   const [teachers, setTeachers] = useState([]);
@@ -58,10 +73,10 @@ const ClassList = () => {
   }, [search, page]);
 
   useEffect(() => {
-    if (isAdmin) {
+    if (canModify) {
       fetchTeachers();
     }
-  }, [isAdmin]);
+  }, [canModify]);
 
   const handleDelete = async (id) => {
     if (window.confirm('Are you sure you want to delete this class?')) {
@@ -127,6 +142,18 @@ const ClassList = () => {
     },
   });
 
+  if (!loading && !canView) {
+    return (
+      <div className="glass-panel rounded-2xl p-12 text-center border border-slate-800">
+        <div className="mx-auto h-12 w-12 bg-red-500/10 border border-red-500/20 text-red-500 rounded-full flex items-center justify-center mb-4">
+          <AlertCircle className="h-6 w-6" />
+        </div>
+        <h3 className="text-lg font-bold text-white mb-2">Access Denied</h3>
+        <p className="text-slate-400 text-sm">You do not have permission to view class listings.</p>
+      </div>
+    );
+  }
+
   return (
     <div className="space-y-6 animate-fade-in">
       {/* Header section */}
@@ -135,7 +162,7 @@ const ClassList = () => {
           <h1 className="text-3xl font-bold tracking-tight text-white">Classes</h1>
           <p className="mt-1 text-sm text-slate-400">Manage academic classrooms and class teachers.</p>
         </div>
-        {isAdmin && (
+        {canModify && (
           <button
             onClick={openAddModal}
             className="inline-flex items-center justify-center gap-2 rounded-xl bg-sky-500 hover:bg-sky-600 px-4 py-2.5 text-sm font-semibold text-white transition-all active:scale-95 shadow-md shadow-sky-500/10 min-h-[44px]"
@@ -201,7 +228,7 @@ const ClassList = () => {
                   <th className="px-6 py-4">Class Name</th>
                   <th className="px-6 py-4">Section</th>
                   <th className="px-6 py-4">Class Teacher</th>
-                  {isAdmin && <th className="px-6 py-4 text-right">Actions</th>}
+                  {canModify && <th className="px-6 py-4 text-right">Actions</th>}
                 </tr>
               </thead>
               <tbody className="divide-y divide-slate-800/60 text-sm">
@@ -219,7 +246,7 @@ const ClassList = () => {
                         <span className="text-slate-500 italic">Not Assigned</span>
                       )}
                     </td>
-                    {isAdmin && (
+                    {canModify && (
                       <td className="px-6 py-4 text-right">
                         <div className="inline-flex gap-2">
                           <button

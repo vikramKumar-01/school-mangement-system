@@ -3,10 +3,19 @@ import { ApiError } from "../utils/ApiError.js";
 import { ApiResponse } from "../utils/ApiResponse.js";
 import { Student } from "../models/student.models.js";
 import { User } from "../models/user.models.js";
+import { Teacher } from "../models/teacher.models.js";
 
 
 const registerStudent = asyncHandler(async (req, res) => {
     const { name, class: className, rollNumber, gender, fatherName, phone, address, admissionDate } = req.body || {};
+
+    // If role is teacher, check if they have permission to register new students
+    if (req.user.role === "teacher") {
+        const teacher = await Teacher.findOne({ user: req.user._id });
+        if (!teacher || teacher.permissions?.addStudent !== true) {
+            throw new ApiError(403, "You do not have permission to register new students");
+        }
+    }
 
     // check required fields
     if (!name?.trim() || !className?.trim() || !rollNumber || !gender) {
@@ -137,6 +146,14 @@ const getAllStudents = asyncHandler(async (req, res) => {
 const updateStudent = asyncHandler(async (req, res) => {
     const { id } = req.params;
     const { name, class: className, rollNumber, fatherName, phone, address, admissionDate } = req.body || {};
+
+    // If role is teacher, check if they have permission to edit student
+    if (req.user.role === "teacher") {
+        const teacher = await Teacher.findOne({ user: req.user._id });
+        if (!teacher || teacher.permissions?.editStudent !== true) {
+            throw new ApiError(403, "You do not have permission to edit student records");
+        }
+    }
 
     const existingStudent = await Student.findById(id);
     if (!existingStudent) {

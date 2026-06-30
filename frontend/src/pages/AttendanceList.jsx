@@ -2,13 +2,28 @@ import React, { useEffect, useState } from 'react';
 import { useFormik } from 'formik';
 import { attendanceService } from '../services/attendance.service';
 import { studentService } from '../services/student.service';
+import { teacherService } from '../services/teacher.service';
 import { attendanceSchema } from '../validations/attendance.validation';
 import useAuth from '../hooks/useAuth';
 import { Plus, Edit2, Trash2, Calendar, Search, X, AlertCircle, CheckCircle, XCircle, AlertOctagon } from 'lucide-react';
 
 const AttendanceList = () => {
   const { user } = useAuth();
-  const canModify = ['admin', 'teacher'].includes(user?.role);
+  const [teacherPermissions, setTeacherPermissions] = useState(null);
+
+  useEffect(() => {
+    const fetchTeacherPerms = async () => {
+      if (user?.role === 'teacher') {
+        const res = await teacherService.getAll({ userId: user._id, limit: 1 }).catch(() => null);
+        const match = res?.teachers?.[0];
+        setTeacherPermissions(match?.permissions || null);
+      }
+    };
+    fetchTeacherPerms();
+  }, [user]);
+
+  const canMark = user?.role === 'admin' || (user?.role === 'teacher' && teacherPermissions?.markAttendance !== false);
+  const canModify = canMark; // Fallback mapping
 
   const [records, setRecords] = useState([]);
   const [students, setStudents] = useState([]);

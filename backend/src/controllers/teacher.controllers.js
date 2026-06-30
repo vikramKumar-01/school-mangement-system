@@ -109,9 +109,13 @@ const getTeacherById = asyncHandler(async (req, res) => {
 
 // Get all teachers
 const getAllTeachers = asyncHandler(async (req, res) => {
-    const { search, subject, page = 1, limit = 10 } = req.query;
+    const { search, subject, userId, page = 1, limit = 10 } = req.query;
 
     const filter = {};
+    if (userId) {
+        filter.user = userId;
+    }
+
     if (subject) {
         filter.subject = { $regex: subject, $options: "i" };
     }
@@ -150,7 +154,7 @@ const getAllTeachers = asyncHandler(async (req, res) => {
 // Update Teacher
 const updateTeacher = asyncHandler(async (req, res) => {
     const { id } = req.params;
-    const { name, subject, phone, email, salary } = req.body || {};
+    const { name, subject, phone, email, salary, permissions } = req.body || {};
 
     const existingTeacher = await Teacher.findById(id);
     if (!existingTeacher) {
@@ -162,7 +166,8 @@ const updateTeacher = asyncHandler(async (req, res) => {
         subject === undefined &&
         phone === undefined &&
         email === undefined &&
-        salary === undefined
+        salary === undefined &&
+        permissions === undefined
     ) {
         throw new ApiError(400, "At least one field is required to update");
     }
@@ -219,6 +224,11 @@ const updateTeacher = asyncHandler(async (req, res) => {
             throw new ApiError(400, "Salary must be a positive number");
         }
         existingTeacher.salary = parsedSalary;
+    }
+
+    if (permissions !== undefined) {
+        existingTeacher.permissions = permissions;
+        existingTeacher.markModified('permissions');
     }
 
     await existingTeacher.save();

@@ -40,6 +40,11 @@ const schoolSettingsSchema = new mongoose.Schema({
         type: String,
         required: true,
         default: "05:00 PM"
+    },
+    isAdmissionOpen: {
+        type: Boolean,
+        required: true,
+        default: true
     }
 }, { timestamps: true });
 

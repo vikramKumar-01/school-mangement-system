@@ -44,6 +44,7 @@ import { assignmentService } from '../services/assignment.service';
 import { marksService } from '../services/marks.service';
 import { studyMaterialService } from '../services/studymaterial.service';
 import { timetableService } from '../services/timetable.service';
+import { noticeService } from '../services/notice.service';
 import TeacherGeolocationAttendance from '../components/TeacherGeolocationAttendance';
 
 const TeacherDashboard = () => {
@@ -63,7 +64,7 @@ const TeacherDashboard = () => {
   const [error, setError] = useState('');
 
   // Modals state
-  const [modalType, setModalType] = useState(null); // 'attendance' | 'assignment' | 'marks' | 'notes'
+  const [modalType, setModalType] = useState(null); // 'attendance' | 'assignment' | 'marks' | 'notes' | 'notice'
   const [modalSuccess, setModalSuccess] = useState('');
 
   // Quick Action form states
@@ -71,6 +72,7 @@ const TeacherDashboard = () => {
   const [assignmentForm, setAssignmentForm] = useState({ title: '', classId: '', dueDate: '' });
   const [marksForm, setMarksForm] = useState({ studentId: '', subject: '', marks: '', total: '100' });
   const [notesForm, setNotesForm] = useState({ title: '', classId: '', file: null });
+  const [noticeForm, setNoticeForm] = useState({ title: '', content: '', category: 'general' });
 
   // Mock list items for rich dynamic display
   const [timetable, setTimetable] = useState([]);
@@ -110,10 +112,8 @@ const TeacherDashboard = () => {
         setError('');
 
         // 1. Fetch current teacher profile details
-        const teacherRes = await teacherService.getAll({ search: user.fullName, limit: 5 }).catch(() => null);
-        const match = (teacherRes?.teachers || []).find(
-          t => t.name?.toLowerCase() === user.fullName?.toLowerCase()
-        );
+        const teacherRes = await teacherService.getAll({ userId: user._id, limit: 1 }).catch(() => null);
+        const match = teacherRes?.teachers?.[0];
         setTeacherDetail(match || null);
 
         // 2. Fetch live stats summaries where available
@@ -305,6 +305,25 @@ const TeacherDashboard = () => {
     }
   };
 
+  const handleNoticeSubmit = async (e) => {
+    e.preventDefault();
+    try {
+      await noticeService.create({
+        title: noticeForm.title,
+        content: noticeForm.content,
+        category: noticeForm.category,
+        author: user.fullName || 'Teacher'
+      });
+      setModalSuccess('Notice circular published on active boards!');
+      setTimeout(() => {
+        setModalType(null);
+        setNoticeForm({ title: '', content: '', category: 'general' });
+      }, 1500);
+    } catch (err) {
+      alert(err?.response?.data?.message || 'Failed to post notice circular');
+    }
+  };
+
   const handleTimetableSubmit = async (e) => {
     e.preventDefault();
     try {
@@ -401,12 +420,16 @@ const TeacherDashboard = () => {
       {/* ── Quick Action Buttons ── */}
       <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
         {[
-          { label: 'Mark Attendance', icon: BookOpenCheck, color: 'hover:border-amber-500 hover:text-amber-600 dark:hover:text-amber-400 bg-amber-500/5', type: 'attendance' },
-          { label: 'Add Assignment', icon: Plus, color: 'hover:border-blue-500 hover:text-blue-600 dark:hover:text-blue-400 bg-blue-500/5', type: 'assignment' },
-          { label: 'Record Exam Marks', icon: Award, color: 'hover:border-violet-500 hover:text-violet-600 dark:hover:text-violet-400 bg-violet-500/5', type: 'marks' },
-          { label: 'Upload Study Notes', icon: Upload, color: 'hover:border-emerald-500 hover:text-emerald-600 dark:hover:text-emerald-400 bg-emerald-500/5', type: 'notes' },
-          { label: 'Manage Timetable', icon: Calendar, color: 'hover:border-sky-500 hover:text-sky-600 dark:hover:text-sky-400 bg-sky-500/5', type: 'timetable' }
-        ].map((act, i) => {
+          { label: 'Mark Attendance', icon: BookOpenCheck, color: 'hover:border-amber-500 hover:text-amber-600 dark:hover:text-amber-400 bg-amber-500/5', type: 'attendance', perm: 'markAttendance' },
+          { label: 'Add Assignment', icon: Plus, color: 'hover:border-blue-500 hover:text-blue-600 dark:hover:text-blue-400 bg-blue-500/5', type: 'assignment', perm: 'createAssignment' },
+          { label: 'Record Exam Marks', icon: Award, color: 'hover:border-violet-500 hover:text-violet-600 dark:hover:text-violet-400 bg-violet-500/5', type: 'marks', perm: 'logMarks' },
+          { label: 'Upload Study Notes', icon: Upload, color: 'hover:border-emerald-500 hover:text-emerald-600 dark:hover:text-emerald-400 bg-emerald-500/5', type: 'notes', perm: 'createAssignment' },
+          { label: 'Publish Notice', icon: Volume2, color: 'hover:border-rose-500 hover:text-rose-655 dark:hover:text-rose-400 bg-rose-500/5', type: 'notice', perm: 'postNotice' },
+          { label: 'Manage Timetable', icon: Calendar, color: 'hover:border-sky-500 hover:text-sky-600 dark:hover:text-sky-400 bg-sky-500/5', type: 'timetable', perm: 'createAssignment' }
+        ].filter(act => {
+          if (!teacherDetail?.permissions) return true;
+          return teacherDetail.permissions[act.perm] !== false;
+        }).map((act, i) => {
           const Icon = act.icon;
           return (
             <button
@@ -888,7 +911,57 @@ const TeacherDashboard = () => {
                   </form>
                 )}
 
-                {/* 5. Add/Edit Timetable Form */}
+                {/* 5. Publish Notice Form */}
+                {modalType === 'notice' && (
+                  <form onSubmit={handleNoticeSubmit} className="space-y-4">
+                    <h3 className="text-lg font-bold text-slate-950 dark:text-white">Publish Notice Circular</h3>
+                    <p className="text-xs text-slate-400">Post a new circular announcement on student active boards.</p>
+                    
+                    <div className="space-y-1">
+                      <label className="text-xs font-bold text-slate-450 dark:text-slate-500 uppercase tracking-wide">Notice Title</label>
+                      <input
+                        required
+                        type="text"
+                        placeholder="e.g. Science Project Submission Dates"
+                        value={noticeForm.title}
+                        onChange={(e) => setNoticeForm({ ...noticeForm, title: e.target.value })}
+                        className="w-full glass-input p-2.5 text-xs text-slate-850 dark:text-slate-200"
+                      />
+                    </div>
+
+                    <div className="space-y-1">
+                      <label className="text-xs font-bold text-slate-450 dark:text-slate-500 uppercase tracking-wide">Circular Notice Category</label>
+                      <select
+                        value={noticeForm.category}
+                        onChange={(e) => setNoticeForm({ ...noticeForm, category: e.target.value })}
+                        className="w-full glass-input p-2.5 text-xs text-slate-850 dark:text-slate-200 bg-white dark:bg-slate-950"
+                      >
+                        <option value="general">General Notice</option>
+                        <option value="exam">Academic Exam</option>
+                        <option value="event">School Event Announcement</option>
+                        <option value="holiday">Holiday Notice</option>
+                      </select>
+                    </div>
+
+                    <div className="space-y-1">
+                      <label className="text-xs font-bold text-slate-450 dark:text-slate-500 uppercase tracking-wide">Notice Content Details</label>
+                      <textarea
+                        required
+                        rows={4}
+                        placeholder="Describe announcement guidelines..."
+                        value={noticeForm.content}
+                        onChange={(e) => setNoticeForm({ ...noticeForm, content: e.target.value })}
+                        className="w-full glass-input p-2.5 text-xs text-slate-850 dark:text-slate-200"
+                      />
+                    </div>
+
+                    <button type="submit" className="w-full py-3 rounded-xl bg-blue-600 hover:bg-blue-700 text-xs font-bold text-white shadow-lg shadow-blue-500/10 cursor-pointer">
+                      Publish Notice Circular
+                    </button>
+                  </form>
+                )}
+
+                {/* 6. Add/Edit Timetable Form */}
                 {modalType === 'timetable' && (
                   <form onSubmit={handleTimetableSubmit} className="space-y-4">
                     <h3 className="text-lg font-bold text-slate-950 dark:text-white">

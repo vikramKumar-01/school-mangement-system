@@ -6,7 +6,7 @@ import { getSettings, updateSettings } from "../controllers/settings.controllers
 const router = Router();
 
 router.route("/")
-    .get(verifyJWT, getSettings)
+    .get(getSettings)
     .put(verifyJWT, AuthorizeRole("admin"), updateSettings);
 
 export default router;

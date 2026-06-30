@@ -3,6 +3,7 @@ import { Outlet, Link, useNavigate, useLocation } from 'react-router-dom';
 import useAuth from '../hooks/useAuth';
 import { useTheme } from '../context/ThemeContext';
 import NotificationBell from '../components/NotificationBell';
+import { teacherService } from '../services/teacher.service';
 import { 
   LayoutDashboard, 
   Users, 
@@ -22,7 +23,9 @@ import {
   MessageSquare,
   FileText,
   ClipboardList,
-  AlertTriangle
+  AlertTriangle,
+  Shield,
+  Award
 } from 'lucide-react';
 
 const MainLayout = () => {
@@ -32,6 +35,18 @@ const MainLayout = () => {
   const location = useLocation();
   const [mobileOpen, setMobileOpen] = useState(false);
   const [sidebarCollapsed, setSidebarCollapsed] = useState(false);
+  const [teacherPermissions, setTeacherPermissions] = useState(null);
+
+  useEffect(() => {
+    const fetchTeacherPerms = async () => {
+      if (user?.role === 'teacher') {
+        const res = await teacherService.getAll({ userId: user._id, limit: 1 }).catch(() => null);
+        const match = res?.teachers?.[0];
+        setTeacherPermissions(match?.permissions || null);
+      }
+    };
+    fetchTeacherPerms();
+  }, [user]);
 
   // If not authenticated, redirect to login
   useEffect(() => {
@@ -58,20 +73,31 @@ const MainLayout = () => {
     { name: 'Dashboard', path: '/dashboard', icon: LayoutDashboard, roles: ['admin', 'teacher', 'student', 'parent'] },
     { name: 'Students', path: '/dashboard/students', icon: Users, roles: ['admin', 'teacher'] },
     { name: 'Teachers', path: '/dashboard/teachers', icon: GraduationCap, roles: ['admin'] },
-    { name: 'Classes', path: '/dashboard/classes', icon: BookOpen, roles: ['admin'] },
+    { name: 'Classes', path: '/dashboard/classes', icon: BookOpen, roles: ['admin', 'teacher'] },
     { name: 'Fees', path: '/dashboard/fees', icon: DollarSign, roles: ['admin', 'student'] },
     { name: 'Student Attendance', path: '/dashboard/attendance', icon: CalendarCheck, roles: ['admin', 'teacher', 'student', 'parent'] },
     { name: 'My Attendance', path: '/dashboard/my-attendance', icon: CalendarCheck, roles: ['teacher'] },
+    { name: 'Academic Progress', path: '/dashboard/academic-progress', icon: Award, roles: ['admin', 'teacher', 'student', 'parent'] },
     { name: 'Messages', path: '/dashboard/messages', icon: MessageSquare, roles: ['admin'] },
     { name: 'Admissions', path: '/dashboard/admissions', icon: ClipboardList, roles: ['admin'] },
+    { name: 'Permissions', path: '/dashboard/permissions', icon: Shield, roles: ['admin'] },
     { name: 'Teacher Attendance', path: '/dashboard/admin-attendance', icon: CalendarCheck, roles: ['admin'] },
     { name: 'Holidays', path: '/dashboard/holidays', icon: BookOpen, roles: ['admin'] },
     { name: 'School Settings', path: '/dashboard/settings', icon: FileText, roles: ['admin'] },
     { name: 'Profile', path: '/dashboard/profile', icon: User, roles: ['admin', 'teacher', 'student', 'parent'] },
   ];
 
-  // Filter menu items by user role
-  const filteredMenuItems = menuItems.filter(item => item.roles.includes(user.role));
+  // Filter menu items by user role and permissions
+  const filteredMenuItems = menuItems.filter(item => {
+    if (!item.roles.includes(user.role)) return false;
+    if (item.name === 'Classes' && user.role === 'teacher') {
+      return teacherPermissions?.manageClasses === true;
+    }
+    if (item.name === 'Academic Progress' && user.role === 'teacher') {
+      return teacherPermissions?.academicProgress !== false;
+    }
+    return true;
+  });
 
   const handleLogout = async () => {
     await logout();

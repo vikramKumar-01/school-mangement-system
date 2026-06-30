@@ -23,6 +23,8 @@ import SchoolSettings from './pages/SchoolSettings';
 import HolidayManagement from './pages/HolidayManagement';
 import AdminTeacherAttendance from './pages/AdminTeacherAttendance';
 import TeacherMyAttendance from './pages/TeacherMyAttendance';
+import TeacherPermissions from './pages/TeacherPermissions';
+import AcademicProgress from './pages/AcademicProgress';
 
 function App() {
   return (
@@ -117,6 +119,15 @@ function App() {
               }
             />
 
+            <Route
+              path="permissions"
+              element={
+                <RoleProtectedRoute allowedRoles={['admin']}>
+                  <TeacherPermissions />
+                </RoleProtectedRoute>
+              }
+            />
+
           {/* Admin Settings & Holidays */}
           <Route path="settings" element={
             <RoleProtectedRoute allowedRoles={['admin']}>
@@ -133,6 +144,15 @@ function App() {
               <AdminTeacherAttendance />
             </RoleProtectedRoute>
           } />
+
+          <Route 
+            path="academic-progress" 
+            element={
+              <RoleProtectedRoute allowedRoles={['admin', 'teacher', 'student', 'parent']}>
+                <AcademicProgress />
+              </RoleProtectedRoute>
+            } 
+          />
 
           </Route>
 

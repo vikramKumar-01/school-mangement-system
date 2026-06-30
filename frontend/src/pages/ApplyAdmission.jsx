@@ -4,12 +4,13 @@ import { useFormik } from 'formik';
 import * as Yup from 'yup';
 import { motion, AnimatePresence } from 'framer-motion';
 import { admissionService } from '../services/admission.service';
+import { settingsService } from '../services/settings.service';
 import useAuth from '../hooks/useAuth';
 import { useTheme } from '../context/ThemeContext';
 import { 
   GraduationCap, User, Users, Home, Phone, 
   CheckCircle, AlertCircle, ArrowLeft, ArrowRight, Upload, Calendar,
-  Sun, Moon, Menu, X
+  Sun, Moon, Menu, X, AlertTriangle
 } from 'lucide-react';
 
 const ApplyAdmission = () => {
@@ -30,6 +31,26 @@ const ApplyAdmission = () => {
     };
     window.addEventListener('scroll', handleScroll);
     return () => window.removeEventListener('scroll', handleScroll);
+  }, []);
+
+  const [isAdmissionOpen, setIsAdmissionOpen] = useState(true);
+  const [settingsLoading, setSettingsLoading] = useState(true);
+
+  useEffect(() => {
+    const fetchSettings = async () => {
+      try {
+        setSettingsLoading(true);
+        const res = await settingsService.getSettings();
+        if (res && res.isAdmissionOpen !== undefined) {
+          setIsAdmissionOpen(res.isAdmissionOpen);
+        }
+      } catch (err) {
+        console.error('Failed to load settings:', err);
+      } finally {
+        setSettingsLoading(false);
+      }
+    };
+    fetchSettings();
   }, []);
 
   const [step, setStep] = useState(1);
@@ -346,7 +367,30 @@ const ApplyAdmission = () => {
           <div className="absolute -left-20 -top-20 h-40 w-40 rounded-full bg-blue-600/5 dark:bg-blue-600/10 blur-3xl pointer-events-none"></div>
           <div className="absolute -right-20 -bottom-20 h-40 w-40 rounded-full bg-indigo-600/5 dark:bg-indigo-600/10 blur-3xl pointer-events-none"></div>
 
-          {success ? (
+          {settingsLoading ? (
+            <div className="relative z-10 text-center py-20 space-y-4 max-w-md mx-auto">
+              <div className="mx-auto h-12 w-12 border-4 border-slate-200 dark:border-slate-800 border-t-blue-500 rounded-full animate-spin"></div>
+              <p className="text-sm text-slate-500 dark:text-slate-405 font-semibold">Checking admissions status...</p>
+            </div>
+          ) : !isAdmissionOpen ? (
+            <div className="relative z-10 text-center py-16 space-y-6 max-w-lg mx-auto animate-fade-in">
+              <div className="mx-auto h-16 w-16 bg-red-500/10 border border-red-500/20 text-red-500 rounded-full flex items-center justify-center animate-bounce">
+                <AlertTriangle className="h-9 w-9 text-red-500" />
+              </div>
+              <h2 className="text-3xl font-extrabold text-slate-900 dark:text-white tracking-tight">Admissions are Closed!</h2>
+              <p className="text-slate-550 dark:text-slate-400 text-sm leading-relaxed max-w-sm mx-auto">
+                Thank you for your interest in Apex Academy. Online registration intake is currently closed. Please contact the administrative office or check back later.
+              </p>
+              <div className="pt-6 flex flex-col sm:flex-row items-center justify-center gap-3">
+                <Link to="/" className="w-full sm:w-auto inline-flex items-center justify-center rounded-xl bg-blue-600 hover:bg-blue-700 px-6 py-2.5 text-sm font-bold text-white transition-all active:scale-[0.98]">
+                  Back to Home
+                </Link>
+                <a href="mailto:info@apex.edu" className="w-full sm:w-auto inline-flex items-center justify-center rounded-xl border border-slate-200 dark:border-slate-800 text-slate-700 dark:text-slate-300 hover:bg-slate-50 dark:hover:bg-slate-850 px-6 py-2.5 text-sm font-bold transition-all active:scale-[0.98]">
+                  Email Admissions Office
+                </a>
+              </div>
+            </div>
+          ) : success ? (
             <div className="relative z-10 text-center py-12 space-y-6 max-w-md mx-auto animate-fade-in">
               <div className="mx-auto h-16 w-16 bg-emerald-500/10 border border-emerald-500/20 text-emerald-500 dark:text-emerald-455 rounded-full flex items-center justify-center">
                 <CheckCircle className="h-10 w-10 animate-bounce" />

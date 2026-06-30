@@ -15,12 +15,12 @@ const router = Router();
 router.use(verifyJWT);
 
 router.route("/")
-    .post(AuthorizeRole("admin"), createClass)
+    .post(AuthorizeRole("admin", "teacher"), createClass)
     .get(getAllClasses);
 
 router.route("/:id")
     .get(getClassById)
-    .put(AuthorizeRole("admin"), updateClass)
-    .delete(AuthorizeRole("admin"), deleteClass);
+    .put(AuthorizeRole("admin", "teacher"), updateClass)
+    .delete(AuthorizeRole("admin", "teacher"), deleteClass);
 
 export default router;
